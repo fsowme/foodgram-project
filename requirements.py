@@ -5,6 +5,7 @@ click==7.1.2
 Django==3.1.6
 mypy-extensions==0.4.3
 pathspec==0.8.1
+Pillow==8.1.0
 psycopg2-binary==2.8.6
 python-dotenv==0.15.0
 pytz==2021.1
