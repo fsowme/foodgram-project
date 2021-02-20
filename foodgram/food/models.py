@@ -3,14 +3,19 @@ from users.models import User
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=20, verbose_name="Имя тэга")
+    name = models.CharField(
+        max_length=20, verbose_name="Имя тэга", unique=True
+    )
 
 
 class Food(models.Model):
     name = models.CharField(
         max_length=200, verbose_name="Название ингредиента"
     )
-    unit = models.CharField(max_length=20, verbose_name="Единицы измерения")
+    unit = models.CharField(max_length=20, verbose_name="Единица измерения")
+
+    class Meta:
+        unique_together = ["name", "unit"]
 
 
 class Recipe(models.Model):
@@ -43,3 +48,6 @@ class Ingredient(models.Model):
         related_name="ingredients",
         verbose_name="Ингредиенты рецепта",
     )
+
+    class Meta:
+        unique_together = ["food", "recipe"]
