@@ -7,15 +7,19 @@ class Tag(models.Model):
         max_length=20, verbose_name="Имя тэга", unique=True
     )
 
+    def __str__(self):
+        return f"Тэг: {self.name}"
+
 
 class Food(models.Model):
-    name = models.CharField(
-        max_length=200, verbose_name="Название ингредиента"
-    )
+    name = models.CharField(max_length=200, verbose_name="Название продукта")
     unit = models.CharField(max_length=20, verbose_name="Единица измерения")
 
     class Meta:
         unique_together = ["name", "unit"]
+
+    def __str__(self):
+        return f"Продукт: {self.name}"
 
 
 class Recipe(models.Model):
@@ -32,6 +36,15 @@ class Recipe(models.Model):
         to=Tag,
     )
     cooking_time = models.TimeField(verbose_name="Время приготовления")
+    pub_date = models.DateTimeField(
+        verbose_name="Дата публикации рецепта", auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ["-pub_date"]
+
+    def __str__(self):
+        return f"Рецепт: {self.name}"
 
 
 class Ingredient(models.Model):
@@ -46,8 +59,14 @@ class Ingredient(models.Model):
         to=Recipe,
         on_delete=models.CASCADE,
         related_name="ingredients",
-        verbose_name="Ингредиенты рецепта",
+        verbose_name="Рецепт ингридиента",
     )
 
     class Meta:
         unique_together = ["food", "recipe"]
+
+    def __str__(self):
+        return (
+            f"Продукт {self.food.name}, "
+            f"как ингредиент блюда {self.recipe.name}"
+        )
