@@ -1,10 +1,13 @@
 from django.shortcuts import HttpResponse, render
 
+from .models import Tag
 
-# Create your views here.
+
+def main(request):
+    # if request.user.is_authenticated:
+    return render(request, "index.html")
+
+
 def testpage(request):
-    # return render(request, "test.html")
-    return render(request, "singlePageNotAuth.html")
-    return render(request, "indexAuth.html")
-    return render(request, "indexNotAuth.html")
-    return HttpResponse("Ok")
+    print(request.user)
+    return render(request, "base.html")

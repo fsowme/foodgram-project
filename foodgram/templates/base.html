@@ -1,0 +1,14 @@
+{% load static %}
+<!doctype html>
+<html>
+{% block head%}
+{% endblock %}
+
+<body class="body">
+    {% include 'include/menu.html' %}
+    {% block content %}
+    {% endblock %}
+    {% include 'include/footer.html' %}
+</body>
+
+</html>
