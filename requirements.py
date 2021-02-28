@@ -11,6 +11,7 @@ psycopg2-binary==2.8.6
 python-dotenv==0.15.0
 pytz==2021.1
 regex==2020.11.13
+sorl-thumbnail==12.7.0
 sqlparse==0.4.1
 toml==0.10.2
 typed-ast==1.4.2

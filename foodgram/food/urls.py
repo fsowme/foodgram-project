@@ -5,6 +5,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("test/", views.testpage, name="index"),
     path("", views.main, name="index"),
+    path("<str:recipe_slug>/edit/", views.recipe_edit, name="edit"),
+    path("<str:recipe_slug>/", views.recipe_view, name="recipe"),
 ]
