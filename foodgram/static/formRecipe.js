@@ -18,7 +18,7 @@ const defineInitialIndex = function () {
         if (!item.getAttribute('id').split('_')[1]) { return 0 }
         return Number(item.getAttribute('id').split('_')[1])
     })
-    data.sort((a, b) => a-b)
+    data.sort((a, b) => a - b)
     return data[data.length - 1] + 1
 }
 
@@ -34,26 +34,26 @@ function Ingredients() {
     };
     // Добавление элемента из инпута
     const addIngredient = (e) => {
-        if(nameIngredient.value && cantidad.value) {
+        if (nameIngredient.value && cantidad.value) {
             const data = getValue();
             const elem = document.createElement('div');
             elem.classList.add('form__field-item-ingredient');
             elem.id = `ing_${cur}`;
-            elem.innerHTML = `<span> ${data.name} ${data.value}${data.units}</span> <span class="form__field-item-delete"></span>
-                             <input id="nameIngredient_${cur}" name="nameIngredient_${cur}" type="hidden" value="${data.name}">
-                             <input id="valueIngredient_${cur}" name="valueIngredient_${cur}" type="hidden" value="${data.value}">
-                             <input id="unitsIngredient_${cur}" name="unitsIngredient_${cur}" type="hidden" value="${data.units}">`;
+            elem.innerHTML = `<span> ${data.name} ${data.value} ${data.units}</span> <span class="form__field-item-delete"></span>
+                             <input id="id_form-${cur}-name" name="form-${cur}-name" type="hidden" value="${data.name}">
+                             <input id="id_form-${cur}-amount" name="form-${cur}-amount" type="hidden" value="${data.value}">
+                             <input id="id_form-${cur}-unit" name="form-${cur}-unit" type="hidden" value="${data.units}">`;
             cur++;
-            
+
             ingredientsContainer.appendChild(elem);
         }
     };
     // удаление элемента
 
     const eventDelete = (e) => {
-        if(e.target.classList.contains('form__field-item-delete')) {
+        if (e.target.classList.contains('form__field-item-delete')) {
             const item = e.target.closest('.form__field-item-ingredient');
-            item.removeEventListener('click',eventDelete);
+            item.removeEventListener('click', eventDelete);
             item.remove()
         };
     };
@@ -82,18 +82,18 @@ function Ingredients() {
 }
 
 const cbEventInput = (elem) => {
-    return api.getIngredients(elem.target.value).then( e => {
-        if(e.length !== 0 ) {
-            const items = e.map( elem => {
+    return api.getIngredients(elem.target.value).then(e => {
+        if (e.length !== 0) {
+            const items = e.map(elem => {
                 return `<a class="form__item-list" data-val="${elem.dimension}"">${elem.title}</a>`
             }).join(' ')
             formDropdownItems.style.display = 'flex';
             formDropdownItems.innerHTML = items;
         }
     })
-    .catch( e => {
-        console.log(e)
-    })
+        .catch(e => {
+            console.log(e)
+        })
 };
 
 const eventInput = debouncing(cbEventInput, 1000);

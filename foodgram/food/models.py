@@ -1,13 +1,8 @@
-from uuid import uuid4
+import uuid
 
 from django.db import models
 from django.utils.text import slugify
 from users.models import User
-
-
-def short_uuid():
-    uuid = uuid4().hex[:16]
-    return uuid
 
 
 class Tag(models.Model):
@@ -22,6 +17,7 @@ class Tag(models.Model):
 class Food(models.Model):
     name = models.CharField(max_length=200, verbose_name="Название продукта")
     unit = models.CharField(max_length=20, verbose_name="Единица измерения")
+    counted = models.BooleanField(blank=False, null=False, default=True)
 
     class Meta:
         unique_together = ["name", "unit"]
@@ -33,7 +29,6 @@ class Food(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=200, verbose_name="Название рецепта")
     slug = models.SlugField(
-        default=short_uuid,
         unique=True,
         editable=False,
         verbose_name="Уникальный адрес",
@@ -51,7 +46,9 @@ class Recipe(models.Model):
     image = models.ImageField(verbose_name="Картинка рецепта")
     description = models.TextField(verbose_name="Описание рецепта")
     tag = models.ManyToManyField(to=Tag, related_name="recipes")
-    cooking_time = models.TimeField(verbose_name="Время приготовления")
+    cooking_time = models.SmallIntegerField(
+        verbose_name="Время приготовления в минутах"
+    )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта", auto_now_add=True
     )
@@ -87,6 +84,7 @@ class Ingredient(models.Model):
         related_name="ingredients",
         verbose_name="Рецепт ингридиента",
     )
+
     amount = models.SmallIntegerField(
         null=True,
         blank=True,
@@ -97,7 +95,7 @@ class Ingredient(models.Model):
         unique_together = ["food", "recipe"]
 
     def save(self, *args, **kwargs):
-        if self.food.unit == "по вкусу":
+        if not self.food.counted:
             self.amount = None
         super(Ingredient, self).save(*args, **kwargs)
 

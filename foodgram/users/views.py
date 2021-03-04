@@ -1,5 +1,3 @@
-from django.http.response import HttpResponse
-from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from users.forms import CreationForm
