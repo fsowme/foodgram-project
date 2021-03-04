@@ -2,11 +2,11 @@ import re
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.forms import modelformset_factory
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from food.forms import IngredientForm, IngredientFormSet, RecipeForm
+from food.forms import RecipeForm
 
-from .models import Food, Ingredient, Recipe, Tag
+from .models import Ingredient, Recipe, Tag
 
 FORMSET_COUNTER = ["{prefix}-TOTAL_FORMS", "{prefix}-INITIAL_FORMS"]
 
@@ -51,7 +51,6 @@ def get_ingredients(recipe):
                 "food_name": i["food__name"],
                 "amount": i["amount"],
                 "food_unit": i["food__unit"],
-                "food_id": i["food"],
             }
         )
     return {"ingredients": ingredients}
@@ -105,36 +104,17 @@ def recipe_edit(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
-    ingredients = recipe.ingredients.all()
-    if request.method == "POST":
-        post_data = update_post(
-            request.POST, field="food_name", prefix="ingredients"
-        )
-        print(request.POST)
-        print(post_data)
-        iformset = IngredientFormSet(post_data, request.FILES, instance=recipe)
-        print(iformset.is_valid())
-        # print(iformset.forms[0]["recipe"].value())
 
-        iformset.save()
-        # inst = iformset.save(commit=False)
-        # print(inst)
-        # iformset.save()
-
-        # for form in iformset:
-        #     form.save()
-        return redirect("recipe", recipe_slug=recipe_slug)
-    elif request.method == "GET":
-        iformset = IngredientFormSet(instance=recipe)
-        # print(iformset.forms[0])
-    tags_names = [tag["name"] for tag in recipe.tag.values("name")]
     recipe_form = RecipeForm(
         request.POST or None, request.FILES or None, instance=recipe
     )
-    context = {
-        "form": recipe_form,
-        "tags": tags_names,
-        "formset": iformset,
-    }
+    if recipe_form.is_valid():
+        recipe_form.save()
+        return redirect("recipe", recipe_slug=recipe_slug)
+    context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(get_ingredients(recipe))
     return render(request, "recipe_edit_page.html", context)
+
+
+def delete(request):
+    HttpResponse("OK")

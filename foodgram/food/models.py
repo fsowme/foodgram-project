@@ -9,6 +9,12 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=20, unique=True, verbose_name="Имя тэга"
     )
+    eng_name = models.CharField(
+        max_length=20, unique=True, verbose_name="Tag name"
+    )
+    color = models.CharField(
+        max_length=100, unique=True, verbose_name="Цвет тэга"
+    )
 
     def __str__(self):
         return f"Тэг - {self.name}"
@@ -51,6 +57,12 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта", auto_now_add=True
+    )
+    ingredient = models.ManyToManyField(
+        Food,
+        through="Ingredient",
+        related_name="recipes",
+        verbose_name="Ингредиенты",
     )
 
     def save(self, *args, **kwargs):

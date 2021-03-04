@@ -1,25 +1,30 @@
 from django import forms
-from django.forms import BaseInlineFormSet, fields, modelformset_factory
+from django.forms import (
+    BaseInlineFormSet,
+    fields,
+    modelformset_factory,
+    widgets,
+)
 from django.forms.models import InlineForeignKeyField, inlineformset_factory
 
 from .models import Food, Ingredient, Recipe
 
 
 class IngredientForm(forms.ModelForm):
-    food_name = forms.CharField()
+    food_name = forms.MultipleChoiceField()
     food_unit = forms.CharField()
 
     class Meta:
         model = Ingredient
         fields = ["amount", "food"]
 
-    # def clean_food(self):
-    #     name = self["food_name"]
-    #     unit = self["food_unit"]
-    #     if food := Food.objects.filter(name=name, unit=unit).first():
-    #         self.instance.food = food.pk
-    #     else:
-    #         self.instance.food = None
+    def clean_food(self):
+        name = self["food_name"]
+        unit = self["food_unit"]
+        if food := Food.objects.filter(name=name, unit=unit).first():
+            self.instance.food = food.pk
+        else:
+            self.instance.food = None
 
 
 class IngredientBaseFormSet(BaseInlineFormSet):
@@ -47,17 +52,56 @@ class IngredientBaseFormSet(BaseInlineFormSet):
             #     form.instance.food = None
 
 
+class IngredientForm(forms.ModelForm):
+    class Meta:
+        model = Ingredient
+        fields = ["food", "recipe", "amount"]
+
+    def clean(self):
+        pass
+
+
 class RecipeForm(forms.ModelForm):
+    food_name = forms.MultipleChoiceField(
+        required=False,
+        widget=widgets.SelectMultiple(attrs={"is_hidden": True}),
+    )
+    food_unit = forms.MultipleChoiceField(
+        required=False,
+        widget=widgets.SelectMultiple(attrs={"is_hidden": True}),
+    )
+    ingredients = forms.ModelChoiceField(queryset=Ingredient.objects.all())
+
     class Meta:
         model = Recipe
-        fields = ["name", "image", "description", "cooking_time"]
+        fields = [
+            "name",
+            "tag",
+            "image",
+            "description",
+            "cooking_time",
+            "ingredient",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["ingredients"].queryset = Ingredient.objects.filter(
+            recipe=self.instance
+        )
 
 
-IngredientFormSet = inlineformset_factory(
-    Recipe,
-    Ingredient,
-    fields=("amount",),
-    extra=0,
-    formset=IngredientBaseFormSet,
-    can_delete=True,
-)
+# class IngredientForm(forms.ModelForm):
+#     food_name = forms.MultipleChoiceField()
+#     food_unit = forms.CharField()
+
+#     class Meta:
+#         model = Ingredient
+#         fields = ["amount", "food"]
+
+#     def clean_food(self):
+#         name = self["food_name"]
+#         unit = self["food_unit"]
+#         if food := Food.objects.filter(name=name, unit=unit).first():
+#             self.instance.food = food.pk
+#         else:
+#             self.instance.food = None
