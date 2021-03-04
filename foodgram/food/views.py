@@ -8,7 +8,7 @@ from food.forms import IngredientForm, IngredientFormSet, RecipeForm
 
 from .models import Food, Ingredient, Recipe, Tag
 
-FORMSET_COUNTER = ["form-TOTAL_FORMS", "form-INITIAL_FORMS"]
+FORMSET_COUNTER = ["{prefix}-TOTAL_FORMS", "{prefix}-INITIAL_FORMS"]
 
 
 def make_pagination(request, elements, total_on_page):
@@ -64,7 +64,23 @@ def update_post(data, field, prefix="form"):
         if re.fullmatch(pattern, key):
             count += 1
     data = data.copy()
-    data.update({_: count for _ in FORMSET_COUNTER})
+    data["ingredients-TOTAL_FORMS"] = str(count)
+    # data["ingredients-INITIAL_FORMS"] = str(count)
+    removed_idx = []
+    for idx, key in enumerate(data):
+        if data.get(f"ingredients-{idx}-recipe") and not data.get(
+            f"ingredients-{idx}-food_name"
+        ):
+            removed_idx.append(idx)
+    count = 0
+    for idx in removed_idx:
+        # del data[f"ingredients-{idx}-recipe"]
+        # del data[f"ingredients-{idx}-id"]
+        # del data[f"ingredients-{idx}-food"]
+        data[f"ingredients-{idx}-DELETE"] = ""
+    data["ingredients-TOTAL_FORMS"] = "1"
+    data["ingredients-INITIAL_FORMS"] = "1"
+    # data.update({_.format(prefix=prefix): count for _ in FORMSET_COUNTER})
     return data
 
 
@@ -91,18 +107,26 @@ def recipe_edit(request, recipe_slug):
         return redirect("recipe", recipe_slug=recipe_slug)
     ingredients = recipe.ingredients.all()
     if request.method == "POST":
-        post_data = update_post(request.POST, field="name")
-        formset = IngredientFormSet(
-            request.POST, request.FILES, instance=recipe
+        post_data = update_post(
+            request.POST, field="food_name", prefix="ingredients"
         )
+        print(request.POST)
+        print(post_data)
+        iformset = IngredientFormSet(post_data, request.FILES, instance=recipe)
+        print(iformset.is_valid())
+        # print(iformset.forms[0]["recipe"].value())
 
-        print(formset.is_valid())
+        iformset.save()
+        # inst = iformset.save(commit=False)
+        # print(inst)
+        # iformset.save()
+
+        # for form in iformset:
+        #     form.save()
         return redirect("recipe", recipe_slug=recipe_slug)
     elif request.method == "GET":
-        formset = IngredientFormSet()
-        print(formset.forms)
-        # print(formset.forms[0].fields)
-        # print([field.value() for form in formset.forms for field in form])
+        iformset = IngredientFormSet(instance=recipe)
+        # print(iformset.forms[0])
     tags_names = [tag["name"] for tag in recipe.tag.values("name")]
     recipe_form = RecipeForm(
         request.POST or None, request.FILES or None, instance=recipe
@@ -110,18 +134,7 @@ def recipe_edit(request, recipe_slug):
     context = {
         "form": recipe_form,
         "tags": tags_names,
-        "formset": formset,
+        "formset": iformset,
     }
     context.update(get_ingredients(recipe))
     return render(request, "recipe_edit_page.html", context)
-
-
-# def test(request):
-#     IngredientFormSet = formset_factory(IngredientForm)
-#     ingredient_formset = IngredientFormSet(request.POST or None)
-#     for form in ingredient_formset.forms:
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.recipe = Recipe.objects.get(pk=23)
-#             instance.save()
-#     return render(request, "qwe.html", {"formset": ingredient_formset})

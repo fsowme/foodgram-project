@@ -66,26 +66,24 @@
                     <div class="form__field-group-ingredientes-container">
                         {{ formset.management_form }}
                         {% for form in formset %}
-                        {{ form.hidden_fields.value }}
-                        {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                        {% endfor %}
+                        {{ form.id }}
                         <div class="form__field-item-ingredient" id="ing_{{forloop.counter0}}">
-                            <span> {{ form.name.value }} {% if form.amount.value %}{{ form.amount.value }}{% endif %}
-                                {{ form.unit.value }}.</span>
+                            <span> {{ form.food_name.value }} {% if form.amount.value %} {{ form.amount.value }}
+                                {%endif%}
+                                {{ form.food_unit.value }}.{{formset.prefix}}</span>
                             <span class="form__field-item-delete"></span>
-                            <input id="id_form-{{forloop.counter0}}-name" name="form-{{forloop.counter0}}-name"
-                                type="hidden" value="{{ form.name.value }}">
+                            <input id="id_ingredients-{{forloop.counter0}}-food_name"
+                                name="ingredients-{{forloop.counter0}}-food_name" type="hidden"
+                                value="{{ form.food_name.value }}">
                             {% if form.amount.value %}
-                            <input id="id_form-{{forloop.counter0}}-amount" name="form-{{forloop.counter0}}-amount"
-                                type="hidden" value="{{ form.amount.value }}">
+                            <input id="id_ingredients-{{forloop.counter0}}-amount"
+                                name="ingredients-{{forloop.counter0}}-amount" type="hidden"
+                                value="{{ form.amount.value }}">
                             {% endif %}
-                            <input id="id_form-{{forloop.counter0}}-unit" name="form-{{forloop.counter0}}-unit"
-                                type="hidden" value="{{ form.unit.value }}">
+                            <input id="id_ingredients-{{forloop.counter0}}-food_unit"
+                                name="ingredients-{{forloop.counter0}}-food_unit" type="hidden"
+                                value="{{ form.food_unit.value }}">
                         </div>
-                        {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                        {% endfor %}
                         {% endfor %}
                     </div>
                     <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>
