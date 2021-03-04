@@ -1,7 +1,15 @@
 from django import forms
 from django.forms import fields, modelformset_factory
+from django.forms.formsets import BaseFormSet
+from django.forms.models import inlineformset_factory
 
 from .models import Food, Ingredient, Recipe
+
+
+class BaseIngredientFormSet(BaseFormSet):
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+        form.fields["my_field"] = forms.CharField()
 
 
 class IngredientForm(forms.ModelForm):
@@ -19,6 +27,10 @@ class RecipeForm(forms.ModelForm):
         fields = ["name", "image", "description", "cooking_time"]
 
 
-IngredientFormSet = modelformset_factory(
-    Ingredient, form=IngredientForm, extra=0
+IngredientFormSet = inlineformset_factory(
+    Recipe,
+    Ingredient,
+    form=IngredientForm,
+    extra=0,
+    formset=BaseIngredientFormSet,
 )

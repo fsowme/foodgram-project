@@ -70,10 +70,6 @@
                         {% for hidden in form.hidden_fields %}
                         {{ hidden }}
                         {% endfor %}
-                        <!-- {{ form.id.value }} -->
-                        <!-- {% for field in form.visible_fields %}
-                        {{ field.label_tag }} {{ field }}
-                        {% endfor %} -->
                         <div class="form__field-item-ingredient" id="ing_{{forloop.counter0}}">
                             <span> {{ form.name.value }} {% if form.amount.value %}{{ form.amount.value }}{% endif %}
                                 {{ form.unit.value }}.</span>

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
-from food.forms import IngredientForm, RecipeForm
+from food.forms import IngredientForm, IngredientFormSet, RecipeForm
 
 from .models import Food, Ingredient, Recipe, Tag
 
@@ -89,28 +89,20 @@ def recipe_edit(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
-    IngredientFormSet = modelformset_factory(
-        Ingredient, form=IngredientForm, extra=0
-    )
     ingredients = recipe.ingredients.all()
     if request.method == "POST":
         post_data = update_post(request.POST, field="name")
-        formset = IngredientFormSet(post_data, request.FILES)
-        for idx, form in enumerate(formset.forms):
-            food_name, unit = form["name"].value(), form["unit"].value()
-            if food := Food.objects.filter(name=food_name, unit=unit).first():
-                if not Ingredient.objects.filter(food=food, recipe=recipe):
-                    amount = form["amount"].value() or None
-                    Ingredient.objects.create(
-                        food=food, recipe=recipe, amount=amount
-                    )
+        formset = IngredientFormSet(
+            request.POST, request.FILES, instance=recipe
+        )
 
+        print(formset.is_valid())
         return redirect("recipe", recipe_slug=recipe_slug)
     elif request.method == "GET":
-        formset = IngredientFormSet(queryset=recipe.ingredients.all())
-        for idx, ingredient in enumerate(recipe.ingredients.all()):
-            formset.forms[idx]["name"].initial = ingredient.food.name
-            formset.forms[idx]["unit"].initial = ingredient.food.unit
+        formset = IngredientFormSet()
+        print(formset.forms)
+        # print(formset.forms[0].fields)
+        # print([field.value() for form in formset.forms for field in form])
     tags_names = [tag["name"] for tag in recipe.tag.values("name")]
     recipe_form = RecipeForm(
         request.POST or None, request.FILES or None, instance=recipe
