@@ -105,10 +105,22 @@ def recipe_edit(request, recipe_slug):
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe_form = RecipeForm(
-        request.POST or None, request.FILES or None, instance=recipe
+        request.POST or None,
+        request.FILES or None,
+        instance=recipe,
     )
     if recipe_form.is_valid():
-        recipe_form.save()
+        instance = recipe_form.save(commit=False)
+        instance.author = request.user
+        instance.save()
+        # ingredient = zip(
+        #     recipe_form.cleaned_data["food"],
+        #     recipe_form.cleaned_data["amount"],
+        # )
+        # for food, amount in ingredient:
+        #     Ingredient.objects.get_or_create(
+        #         food=food, amount=amount, defaults={"recipe": recipe}
+        #     )
         return redirect("recipe", recipe_slug=recipe_slug)
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(get_ingredients(recipe))

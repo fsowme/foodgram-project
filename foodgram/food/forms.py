@@ -1,7 +1,6 @@
 from django import forms
 from django.forms import BaseInlineFormSet, widgets
-from django.forms.models import InlineForeignKeyField, inlineformset_factory
-from django.http import request
+from django.forms.models import InlineForeignKeyField
 
 from .models import Food, Ingredient, Recipe, Tag
 
@@ -65,7 +64,8 @@ class RecipeForm(forms.ModelForm):
         ),
         required=False,
     )
-    ings = forms.ModelMultipleChoiceField(queryset=None)
+    food = forms.MultipleChoiceField(required=False)
+    amount = forms.MultipleChoiceField(required=False)
 
     class Meta:
         model = Recipe
@@ -75,18 +75,92 @@ class RecipeForm(forms.ModelForm):
             "image",
             "description",
             "cooking_time",
-            "food",
-            "amount",
         ]
+
+    def clean(self):
+        super().clean()
+        food_names = self.data.getlist("nameIngredient")
+        food_units = self.data.getlist("unitsIngredient")
+        food_amount = self.data.getlist("valueIngredient")
+        if len(food_names) != len(food_units) != len(food_amount):
+            raise forms.ValidationError(
+                "Number of titles does not equal number of units and "
+                "amount of products"
+            )
+        # cleaned_amount = []
+        # for idx, food in enumerate(food_names):
+        #     unit, amount = unit[idx], food_amount[idx]
+        #     if Food.objects.filter(name=food, unit=unit).exists():
+        print(food_names, food_amount, food_units)
+        food = zip(food_names, food_units)
+        keys = []
+        cleaned_amount = []
+        for count, (name, unit) in enumerate(food):
+            if (
+                Food.objects.filter(name=name, unit=unit).exists()
+                and Food.objects.get(name=name, unit=unit).pk not in keys
+            ):
+                cleaned_amount.append(food_amount[count])
+                keys.append(Food.objects.get(name=name, unit=unit).pk)
+        print(keys)
+        self.cleaned_data["food"] = Food.objects.filter(pk__in=keys)
+        self.cleaned_data["amount"] = cleaned_amount
+        self.instance.ingredients.all().delete()
+
+        print(self.cleaned_data["food"])
+        print(self.cleaned_data["amount"])
+        for idx, item in enumerate(self.cleaned_data["food"]):
+            Ingredient.objects.create(
+                recipe=self.instance,
+                food=item,
+                amount=self.cleaned_data["amount"][idx],
+            )
+        # print(self.cleaned_data["amount"])
+        # return Food.objects.filter(pk__in=set(keys))
+
+    # def clean_food(self):
+    #     super().clean()
+    #     print(self.cleaned_data["food"])
+
+    #     food_names = self.data.getlist("nameIngredient")
+    #     food_units = self.data.getlist("unitsIngredient")
+    #     amount = self.data.getlist("valueIngredient")
+    #     if len(food_names) != len(food_units) != len(amount):
+    #         raise forms.ValidationError(
+    #             "Number of titles does not equal number of units and "
+    #             "amount of products"
+    #         )
+    #     food = zip(food_names, food_units)
+    #     keys = []
+    #     for count, (name, unit) in enumerate(food):
+    #         if not Food.objects.filter(name=name, unit=unit).exists():
+    #             del amount[count]
+    #         else:
+    #             keys.append(Food.objects.get(name=name, unit=unit).pk)
+    #     self.data["amount"] = amount
+    #     return Food.objects.filter(pk__in=set(keys))
+
+    # def clean_amount(self):
+    #     print("INGS " * 10)
+    #     print(self.data)
+    #     super().clean()
+    #     # self.fields["ingredients"].queryset
+    #     amount = self.data.getlist("valueIngredient")
+
+    # def clean(self):
+    #     super().clean()
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     if self.instance.pk:
+    #         self.fields[
+    #             "ingredients"
+    #         ].queryset = self.instance.ingredients.all()
+    #     else:
+    #         self.fields["ingredients"].queryset = Ingredient.objects.none()
 
     # def clean(self):
     # super().clean()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["ings"].queryset = Ingredient.objects.filter(
-            recipe=self.instance
-        )
 
     # def clean_ings(self):
     #     print("CLEANED_DATA:______________")

@@ -6,6 +6,7 @@
 {% endblock %}
 {% block content %}
 {% load thumbnail %}
+{% load recipe_filters %}
 
 
 <main class="main container">
@@ -51,18 +52,14 @@
                     </div>
 
                     <div class="form__field-group-ingredientes-container">
-                        {% for f in form.food %}
-                        {{ f }}
-                        {% endfor %}
-                        {{form.food}}
-                        {% for i in form.ingredients %}
-                        {% with instance=i.data.value.instance %}
+                        {% for ingredient in ingredients %}
                         <div class="form__field-item-ingredient" id="ing_{{forloop.counter0}}">
-                            <span> {{ instance.food.name }} {% if instance.amount %}{{ instance.amount }}{% endif %} {{ instance.food.unit }}</span>
+                            <span> {{ ingredient.food_name }} {% if ingredient.amount %}{{ ingredient.amount }}{% endif %} {{ ingredient.food_unit }}</span>
                             <span class="form__field-item-delete"></span>
-                            <input id="{{ i.id_for_label }}" name="{{ i.data.name }}" type="hidden" value="{{ i.data.value.value }}">
+                            <input id="nameIngredient" name="nameIngredient"  type="hidden" value="{{ ingredient.food_name }}">
+                            <input id="valueIngredient" name="valueIngredient" type="hidden" value="{{ ingredient.amount }}">
+                            <input id="unitsIngredient" name="unitsIngredient" type="hidden" value="{{ ingredient.food_unit }}">
                         </div>
-                        {% endwith %}
                         {% endfor %}
                     </div>
                     <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>

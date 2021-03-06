@@ -52,19 +52,19 @@ class Recipe(models.Model):
     image = models.ImageField(verbose_name="Картинка рецепта")
     description = models.TextField(verbose_name="Описание рецепта")
     tag = models.ManyToManyField(to=Tag, related_name="recipes")
-    cooking_time = models.SmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления в минутах"
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта", auto_now_add=True
     )
-    food = models.ManyToManyField(
-        Food,
-        through="Ingredient",
-        through_fields=("recipe", "food"),
-        related_name="recipes",
-        verbose_name="Ингредиенты",
-    )
+    # food = models.ManyToManyField(
+    #     Food,
+    #     through="Ingredient",
+    #     through_fields=("recipe", "food"),
+    #     related_name="recipes",
+    #     verbose_name="Ингредиенты",
+    # )
 
     def save(self, *args, **kwargs):
         if self.slug_id is None:
@@ -97,8 +97,7 @@ class Ingredient(models.Model):
         related_name="ingredients",
         verbose_name="Рецепт ингридиента",
     )
-
-    amount = models.SmallIntegerField(
+    amount = models.PositiveIntegerField(
         null=True,
         blank=True,
         verbose_name="Количество ингредиента",

@@ -6,3 +6,8 @@ register = template.Library()
 @register.filter
 def get_value_from_dict(dictionary, key):
     return dictionary.get(key)
+
+
+@register.filter
+def get_value_from_list(list, index):
+    return list[index]
