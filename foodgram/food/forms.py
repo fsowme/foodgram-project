@@ -1,13 +1,9 @@
 from django import forms
-from django.forms import (
-    BaseInlineFormSet,
-    fields,
-    modelformset_factory,
-    widgets,
-)
+from django.forms import BaseInlineFormSet, widgets
 from django.forms.models import InlineForeignKeyField, inlineformset_factory
+from django.http import request
 
-from .models import Food, Ingredient, Recipe
+from .models import Food, Ingredient, Recipe, Tag
 
 
 class IngredientForm(forms.ModelForm):
@@ -62,15 +58,14 @@ class IngredientForm(forms.ModelForm):
 
 
 class RecipeForm(forms.ModelForm):
-    food_name = forms.MultipleChoiceField(
+    tag = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        widget=widgets.CheckboxSelectMultiple(
+            attrs={"class": "tags__checkbox"}
+        ),
         required=False,
-        widget=widgets.SelectMultiple(attrs={"is_hidden": True}),
     )
-    food_unit = forms.MultipleChoiceField(
-        required=False,
-        widget=widgets.SelectMultiple(attrs={"is_hidden": True}),
-    )
-    ingredients = forms.ModelChoiceField(queryset=Ingredient.objects.all())
+    ings = forms.ModelMultipleChoiceField(queryset=None)
 
     class Meta:
         model = Recipe
@@ -80,14 +75,33 @@ class RecipeForm(forms.ModelForm):
             "image",
             "description",
             "cooking_time",
-            "ingredient",
+            "food",
+            "amount",
         ]
+
+    # def clean(self):
+    # super().clean()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["ingredients"].queryset = Ingredient.objects.filter(
+        self.fields["ings"].queryset = Ingredient.objects.filter(
             recipe=self.instance
         )
+
+    # def clean_ings(self):
+    #     print("CLEANED_DATA:______________")
+    #     print(self.cleaned_data)
+    #     print("DATA:______________")
+    #     print(self.data)
+    #     print("fields[ings]:______________")
+    #     print(self.fields["ings"])
+    #     self.instance.ingredients.set(self.cleaned_data["ings"])
+    # return
+
+
+# def __init__(self, *args, **kwargs):
+#     super().__init__(*args, **kwargs)
+#     self.fields['ings'].queryset =
 
 
 # class IngredientForm(forms.ModelForm):

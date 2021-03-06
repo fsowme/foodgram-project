@@ -104,7 +104,6 @@ def recipe_edit(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
-
     recipe_form = RecipeForm(
         request.POST or None, request.FILES or None, instance=recipe
     )
@@ -116,5 +115,15 @@ def recipe_edit(request, recipe_slug):
     return render(request, "recipe_edit_page.html", context)
 
 
-def delete(request):
+def recipe_delete(request):
     HttpResponse("OK")
+
+
+@login_required
+def recipe_new(request):
+    recipe_form = RecipeForm(request.POST or None, request.FILES or None)
+    if recipe_form.is_valid():
+        recipe_form.save()
+        return redirect("index")
+    context = {"form": recipe_form, "tags": Tag.objects.all()}
+    return render(request, "recipe_edit_page.html", context)

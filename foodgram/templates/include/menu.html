@@ -13,7 +13,7 @@
                 </li>
                 <li
                     class="nav__item {% if request.resolver_match.url_name == 'add' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
-                    <a href="#" class="nav__link link">Создать рецепт</a>
+                    <a href="{% url 'new' %}" class="nav__link link">Создать рецепт</a>
                 </li>
                 <li
                     class="nav__item {% if request.resolver_match.url_name == 'bookmarks' %}nav__item_active{% else %}nav__item_disabled{% endif %}">

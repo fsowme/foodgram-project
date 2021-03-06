@@ -17,7 +17,7 @@ class Tag(models.Model):
     )
 
     def __str__(self):
-        return f"Тэг - {self.name}"
+        return self.name
 
 
 class Food(models.Model):
@@ -29,7 +29,7 @@ class Food(models.Model):
         unique_together = ["name", "unit"]
 
     def __str__(self):
-        return f"Продукт - {self.name}"
+        return self.name
 
 
 class Recipe(models.Model):
@@ -58,9 +58,10 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта", auto_now_add=True
     )
-    ingredient = models.ManyToManyField(
+    food = models.ManyToManyField(
         Food,
         through="Ingredient",
+        through_fields=("recipe", "food"),
         related_name="recipes",
         verbose_name="Ингредиенты",
     )
@@ -80,7 +81,7 @@ class Recipe(models.Model):
         unique_together = ["name", "slug_id"]
 
     def __str__(self):
-        return f"Рецепт - {self.name}"
+        return self.name
 
 
 class Ingredient(models.Model):
