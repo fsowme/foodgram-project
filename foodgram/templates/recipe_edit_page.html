@@ -30,11 +30,12 @@
                     <div class="tags">
                         {% for tag in form.tag %}
                         <div class="tags__item">
-                            <input type="checkbox" name="tag" value="{{ tag.data.value.value }}" id="{{ tag.id_for_label }}"
+                            <input type="checkbox" name="{{ tag.data.name }}" value="{{ tag.data.value.value }}" id="{{ tag.id_for_label }}"
                                 class="tags__checkbox tags__checkbox_style_{{ tag.data.value.instance.color }}" {% if tag.data.selected %}checked{%endif %}>
-                            <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag.choice_label }}</label>
+                            <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag.data.label }}</label>
                         </div>
                         {% endfor %}
+                        {{ form.tag}}
                     </div>
                     <span class="form__error">{{ form.tag.errors }}</span>
                 </div>
@@ -87,10 +88,9 @@
             <div class="form__group">
                 <span class="form__label">Загрузить фото</span>
                 <div class="form__field-group">
-
-                    <label for="id_{{ form.image.name }}" class="form__file-button">Выбрать файл</label>
-                    <input type="file" class="form__file" name="{{ form.image.name }}" id="id_{{ form.image.name }}"
-                        {% if form.image.value %}value="{{ form.image.value }}"{% endif %}>
+                    <label for="{{ form.image.id_for_label }}" class="form__file-button">Выбрать файл</label>
+                    <input type="file" class="form__file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}"
+                        {% if form.image.value %}value="{{ form.image.value }}"{% endif %} accept="image/*">
                     <span class=" form__error">{{ form.image.errors }}</span>
                 </div>
             </div>

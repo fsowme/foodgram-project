@@ -105,37 +105,45 @@ def recipe_edit(request, recipe_slug):
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe_form = RecipeForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=recipe,
+        request.POST or None, request.FILES or None, instance=recipe
     )
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
         instance.author = request.user
+        new_food, amount = [], []
+        for food in recipe_form.cleaned_data["food"]:
+            new_food.append(food)
+            amount.append(recipe_form.cleaned_data["food"][food])
+        Ingredient.objects.exclude(food__in=new_food).delete()
+        for idx, food in enumerate(new_food):
+            Ingredient.objects.update_or_create(
+                recipe=recipe, food=food, defaults={"amount": amount[idx]}
+            )
         instance.save()
-        # ingredient = zip(
-        #     recipe_form.cleaned_data["food"],
-        #     recipe_form.cleaned_data["amount"],
-        # )
-        # for food, amount in ingredient:
-        #     Ingredient.objects.get_or_create(
-        #         food=food, amount=amount, defaults={"recipe": recipe}
-        #     )
         return redirect("recipe", recipe_slug=recipe_slug)
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(get_ingredients(recipe))
     return render(request, "recipe_edit_page.html", context)
 
 
-def recipe_delete(request):
-    HttpResponse("OK")
+@login_required
+def recipe_delete(request, recipe_slug):
+    recipe = get_object_or_404(Recipe, slug=recipe_slug)
+    if request.user != recipe.author:
+        return redirect("recipe", recipe_slug=recipe_slug)
+    recipe.delete()
+    return redirect("index")
 
 
 @login_required
 def recipe_new(request):
     recipe_form = RecipeForm(request.POST or None, request.FILES or None)
+    print(recipe_form.errors)
     if recipe_form.is_valid():
-        recipe_form.save()
+        instance = recipe_form.save(commit=False)
+        instance.author = request.user
+        instance.save()
+        print(instance)
         return redirect("index")
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     return render(request, "recipe_edit_page.html", context)
