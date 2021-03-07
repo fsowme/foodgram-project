@@ -1,14 +1,19 @@
-from django.db import models
-from pytils.translit import slugify
-from users.models import User
-from django.db.models import Q
 import uuid
+
+from django.db import models
+from users.models import User
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=20, unique=True, verbose_name="Имя тэга")
-    eng_name = models.CharField(max_length=20, unique=True, verbose_name="Tag name")
-    color = models.CharField(max_length=100, unique=True, verbose_name="Цвет тэга")
+    name = models.CharField(
+        max_length=20, unique=True, verbose_name="Имя тэга"
+    )
+    eng_name = models.CharField(
+        max_length=20, unique=True, verbose_name="Tag name"
+    )
+    color = models.CharField(
+        max_length=100, unique=True, verbose_name="Цвет тэга"
+    )
 
     def __str__(self):
         return self.name
@@ -35,7 +40,9 @@ class Recipe(models.Model):
         related_name="recipes",
         verbose_name="Рецепты автора",
     )
-    image = models.ImageField(verbose_name="Картинка рецепта", upload_to="food/")
+    image = models.ImageField(
+        verbose_name="Картинка рецепта", upload_to="food/"
+    )
     description = models.TextField(verbose_name="Описание рецепта")
     tag = models.ManyToManyField(to=Tag, related_name="recipes")
     cooking_time = models.PositiveSmallIntegerField(
@@ -80,12 +87,19 @@ class Ingredient(models.Model):
         super(Ingredient, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"Продукт {self.food.name}, " f"как ингредиент блюда {self.recipe.name}"
+        return (
+            f"Продукт {self.food.name}, "
+            f"как ингредиент блюда {self.recipe.name}"
+        )
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="follower"
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="following"
+    )
 
     class Meta:
         unique_together = ["user", "author"]

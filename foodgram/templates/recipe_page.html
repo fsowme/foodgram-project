@@ -35,8 +35,11 @@
                     <li class="single-card__item">
                         <p class="single-card__text"><span class="icon-user"></span> {{ author_name }}</p>
                     </li>
+                    {% if can_edit %}
                     <li class="single-card__item"> <a style="margin-left: 2.5em" href="{% url 'edit' recipe.slug %}"
-                            class="single-card__text">Редактировать рецепт</a></li>
+                        class="single-card__text">Редактировать рецепт</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
             <ul class="single-card__items">

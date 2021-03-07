@@ -1,28 +1,21 @@
 {% load static %}
 {% load recipe_filters %}
 {% load thumbnail %}
-<div class="card" data-id="120">
+<div class="card" data-id="{{ recipe.slug }}">
     {% thumbnail recipe.image "480x480" as image %}
-    <a href="{{ recipe.slug }}" class="link" target="_self"><img src="{{ image.url }}" alt="Какой-то текст"
+    <a href="{% url 'recipe' recipe_slug=recipe.slug %}" class="link" target="_self"><img src="{{ image.url }}" alt="Какой-то текст"
             class="card__image"></a>
     {% endthumbnail %}
     <div class="card__body">
-        <a class="card__title link" href="{{ recipe.slug }}" target="_self">{{ recipe.name }}</a>
+        <a class="card__title link" href="{% url 'recipe' recipe_slug=recipe.slug %}" target="_self">{{ recipe.name }}</a>
         <ul class="card__items">
-            {% if 'Обед' in tags_on_recipes|get_value_from_dict:recipe.id %}
-            <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
-            {% endif %}
-            {% if 'Завтрак' in tags_on_recipes|get_value_from_dict:recipe.id %}
-            <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
-            {% endif %}
-            {% if 'Ужин' in tags_on_recipes|get_value_from_dict:recipe.id %}
-            <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
-            {% endif %}
+            {% for tag in recipe_tags %}
+            <li class="card__item"><span class="badge badge_style_{{ tag.color }}">{{ tag.name }}</span></li>
+            {% endfor %}
         </ul>
         <div class="card__items card__items_column">
-            <p class="card__text"><span class="icon-time"></span> 20 мин.</p>
-            <p class="card__text"><span class="icon-user"></span> <a href="#" style="color: black">Вероника
-                    Чернова</a></p>
+            <p class="card__text"><span class="icon-time"></span> {{ recipe.cooking_time }}</p>
+            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'user' username=author.username %}" style="color: black">{{ name }}</a></p>
         </div>
     </div>
     <div class="card__footer">

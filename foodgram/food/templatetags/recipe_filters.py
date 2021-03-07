@@ -9,7 +9,7 @@ def addclass(field, css):
 
 
 @register.filter
-def get_value_from_dict(dictionary, key):
+def get_from_dict(dictionary, key):
     return dictionary.get(key)
 
 

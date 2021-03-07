@@ -12,7 +12,7 @@
                     <a href="#" class="nav__link link">Мои подписки</a>
                 </li>
                 <li
-                    class="nav__item {% if request.resolver_match.url_name == 'add' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
+                    class="nav__item {% if request.resolver_match.url_name == 'new' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
                     <a href="{% url 'new' %}" class="nav__link link">Создать рецепт</a>
                 </li>
                 <li
