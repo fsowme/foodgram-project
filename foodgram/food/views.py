@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from food.forms import RecipeForm
+from .forms import RecipeForm
 
 from .models import Ingredient, Recipe, Tag
 
@@ -93,7 +93,7 @@ def main(request):
 
 def recipe_view(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
-    tags_names = [tag["name"] for tag in recipe.tag.values("name")]
+    tags_names = recipe.tag.values("name", "eng_name", "color")
     context = {"recipe": recipe, "tags": tags_names}
     context.update(get_fullname_or_username(recipe.author))
     return render(request, "recipe_page.html", context)
@@ -105,24 +105,41 @@ def recipe_edit(request, recipe_slug):
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe_form = RecipeForm(
-        request.POST or None, request.FILES or None, instance=recipe
+        request.POST or None, files=request.FILES or None, instance=recipe
     )
+
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
         instance.author = request.user
-        new_food, amount = [], []
-        for food in recipe_form.cleaned_data["food"]:
-            new_food.append(food)
-            amount.append(recipe_form.cleaned_data["food"][food])
-        Ingredient.objects.exclude(food__in=new_food).delete()
-        for idx, food in enumerate(new_food):
+        instance.tag.set(recipe_form.cleaned_data["tag"])
+        ingredients = recipe_form.cleaned_data["food"]
+        Ingredient.objects.exclude(food__in=ingredients.keys()).delete()
+        for food, amount in ingredients.items():
             Ingredient.objects.update_or_create(
-                recipe=recipe, food=food, defaults={"amount": amount[idx]}
+                recipe=recipe, food=food, defaults={"amount": amount}
             )
         instance.save()
         return redirect("recipe", recipe_slug=recipe_slug)
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(get_ingredients(recipe))
+    return render(request, "recipe_edit_page.html", context)
+
+
+@login_required
+def recipe_new(request):
+    recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
+    if recipe_form.is_valid():
+        instance = recipe_form.save(commit=False)
+        instance.author = request.user
+        instance.save()
+        instance.tag.set(recipe_form.cleaned_data["tag"])
+        ingredients = recipe_form.cleaned_data["food"]
+        for food, amount in ingredients.items():
+            Ingredient.objects.create(
+                recipe=instance, food=food, amount=amount
+            )
+        return redirect("index")
+    context = {"form": recipe_form, "tags": Tag.objects.all()}
     return render(request, "recipe_edit_page.html", context)
 
 
@@ -133,17 +150,3 @@ def recipe_delete(request, recipe_slug):
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe.delete()
     return redirect("index")
-
-
-@login_required
-def recipe_new(request):
-    recipe_form = RecipeForm(request.POST or None, request.FILES or None)
-    print(recipe_form.errors)
-    if recipe_form.is_valid():
-        instance = recipe_form.save(commit=False)
-        instance.author = request.user
-        instance.save()
-        print(instance)
-        return redirect("index")
-    context = {"form": recipe_form, "tags": Tag.objects.all()}
-    return render(request, "recipe_edit_page.html", context)

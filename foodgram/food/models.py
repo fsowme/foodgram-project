@@ -1,20 +1,14 @@
-import uuid
-
 from django.db import models
-from django.utils.text import slugify
+from pytils.translit import slugify
 from users.models import User
+from django.db.models import Q
+import uuid
 
 
 class Tag(models.Model):
-    name = models.CharField(
-        max_length=20, unique=True, verbose_name="Имя тэга"
-    )
-    eng_name = models.CharField(
-        max_length=20, unique=True, verbose_name="Tag name"
-    )
-    color = models.CharField(
-        max_length=100, unique=True, verbose_name="Цвет тэга"
-    )
+    name = models.CharField(max_length=20, unique=True, verbose_name="Имя тэга")
+    eng_name = models.CharField(max_length=20, unique=True, verbose_name="Tag name")
+    color = models.CharField(max_length=100, unique=True, verbose_name="Цвет тэга")
 
     def __str__(self):
         return self.name
@@ -34,22 +28,14 @@ class Food(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(max_length=200, verbose_name="Название рецепта")
-    slug = models.SlugField(
-        unique=True,
-        editable=False,
-        verbose_name="Уникальный адрес",
-        max_length=220,
-    )
-    slug_id = models.PositiveSmallIntegerField(
-        editable=False, verbose_name="Уникальная чать адреса"
-    )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False)
     author = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
         related_name="recipes",
         verbose_name="Рецепты автора",
     )
-    image = models.ImageField(verbose_name="Картинка рецепта")
+    image = models.ImageField(verbose_name="Картинка рецепта", upload_to="food/")
     description = models.TextField(verbose_name="Описание рецепта")
     tag = models.ManyToManyField(to=Tag, related_name="recipes")
     cooking_time = models.PositiveSmallIntegerField(
@@ -58,27 +44,9 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта", auto_now_add=True
     )
-    # food = models.ManyToManyField(
-    #     Food,
-    #     through="Ingredient",
-    #     through_fields=("recipe", "food"),
-    #     related_name="recipes",
-    #     verbose_name="Ингредиенты",
-    # )
-
-    def save(self, *args, **kwargs):
-        if self.slug_id is None:
-            slug = slugify(self.name)
-            if twins := Recipe.objects.filter(name=self.name):
-                self.slug_id = twins.first().slug_id + 1
-                self.slug = f"{slug}_{self.slug_id}"
-            else:
-                self.slug, self.slug_id = slug, 0
-        super(Recipe, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ["-pub_date"]
-        unique_together = ["name", "slug_id"]
 
     def __str__(self):
         return self.name
@@ -112,19 +80,12 @@ class Ingredient(models.Model):
         super(Ingredient, self).save(*args, **kwargs)
 
     def __str__(self):
-        return (
-            f"Продукт {self.food.name}, "
-            f"как ингредиент блюда {self.recipe.name}"
-        )
+        return f"Продукт {self.food.name}, " f"как ингредиент блюда {self.recipe.name}"
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="follower"
-    )
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="following"
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
 
     class Meta:
         unique_together = ["user", "author"]

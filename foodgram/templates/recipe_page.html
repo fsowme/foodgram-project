@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load recipe_filters %}
 {% block title %}{{ recipe.name }}{% endblock %}
 {% block head %}
 {% include 'include/head.html' with pagestyle='pages/single.css' %}
@@ -23,15 +24,10 @@
                 {% endif %}
             </div>
             <ul class="single-card__items">
-                {% if "Обед" in tags %}
-                <li class="single-card__item"><span class="badge badge_style_green">Обед</span></li>
-                {% endif %}
-                {% if "Завтрак" in tags %}
-                <li class="single-card__item"><span class="badge badge_style_orange">Завтрак</span></li>
-                {% endif %}
-                {% if "Ужин" in tags %}
-                <li class="single-card__item"><span class="badge badge_style_purple">Ужин</span></li>
-                {% endif %}
+                {% for tag in tags %}
+                <li class="single-card__item"><span class="badge badge_style_{{ tag.color }}">{{ tag.name }}</span></li>
+                {% endfor %}
+
             </ul>
             <div class="single-card__items single-card__items_column">
                 <p class="single-card__text"><span class="icon-time"></span> {{ recipe.cooking_time }} </p>

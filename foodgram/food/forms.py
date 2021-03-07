@@ -10,19 +10,22 @@ class RecipeForm(forms.ModelForm):
         widget=widgets.CheckboxSelectMultiple(),
         required=False,
     )
-    food = forms.MultipleChoiceField(required=False)
+    # image = forms.ImageField(required=False)
     amount = forms.MultipleChoiceField(required=False)
-    image = forms.ImageField(required=False)
+    food = forms.MultipleChoiceField(required=False)
 
     class Meta:
         model = Recipe
         fields = [
             "name",
-            "tag",
-            "image",
             "description",
             "cooking_time",
+            "tag",
+            "image",
         ]
+        # widgets = {
+        #     "tags": forms.CheckboxSelectMultiple(),
+        # }
 
     def clean_food(self):
         food_names = self.data.getlist("nameIngredient")
@@ -44,4 +47,9 @@ class RecipeForm(forms.ModelForm):
                 ingredient = Food.objects.get(name=name, unit=unit)
                 cleaned_food[ingredient] = food_amount[count]
         self.cleaned_data["food"] = cleaned_food
+        print(cleaned_food, self.cleaned_data["food"], "*******")
         return self.cleaned_data["food"]
+
+    def clean_image(self):
+        print(self.cleaned_data)
+        return self.cleaned_data["image"]
