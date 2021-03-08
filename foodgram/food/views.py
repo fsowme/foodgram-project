@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from users.models import User
 
 from .forms import RecipeForm
-from .models import Ingredient, Recipe, Tag
+from .models import Follow, Ingredient, Recipe, Tag
 
 FORMSET_COUNTER = ["{prefix}-TOTAL_FORMS", "{prefix}-INITIAL_FORMS"]
 
@@ -71,12 +71,12 @@ def is_editable(author, user):
     return {"can_edit": editable}
 
 
-# def is_following(author, user):
-#      follow = bool(
-#         user.is_authenticated
-#         # and Follow.objects.filter(author=author, user=user).exists()
-#     )
-#     return {"follow": follow}
+def is_following(author, user):
+    follow = bool(
+        user.is_authenticated
+        and Follow.objects.filter(author=author, user=user).exists()
+    )
+    return {"follow": follow}
 
 
 def recipe_view(request, recipe_slug):
