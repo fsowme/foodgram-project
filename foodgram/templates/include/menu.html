@@ -9,7 +9,7 @@
                 {% if user.is_authenticated %}
                 <li
                     class="nav__item {% if request.resolver_match.url_name == 'follow' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
-                    <a href="#" class="nav__link link">Мои подписки</a>
+                    <a href="{% url 'follow' %}" class="nav__link link">Мои подписки</a>
                 </li>
                 <li
                     class="nav__item {% if request.resolver_match.url_name == 'new' %}nav__item_active{% else %}nav__item_disabled{% endif %}">

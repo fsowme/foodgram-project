@@ -11,5 +11,5 @@ urlpatterns = [
     path("<str:recipe_slug>/delete/", views.recipe_delete, name="delete"),
     path("<slug:recipe_slug>/", views.recipe_view, name="recipe"),
     path("author/<str:username>/", views.user_view, name="user"),
-    # path(),
+    path("follow", views.follow_view, name="follow"),
 ]

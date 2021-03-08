@@ -1,19 +1,21 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import request
-from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from users.models import User
+
+from pytils.translit import slugify
 
 from .forms import RecipeForm
 from .models import Follow, Ingredient, Recipe, Tag
 
-FORMSET_COUNTER = ["{prefix}-TOTAL_FORMS", "{prefix}-INITIAL_FORMS"]
+INDEX_PAGE_SIZE = 6
+FOLLOW_PAGE_SIZE = 3
+RECIPES_FOLLOW_PAGE = 3
 
 
 def make_pagination(request, elements, total_on_page):
     paginator = Paginator(elements, total_on_page)
-    page_number = request.GET.get("page", 1)
+    page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     return paginator, page
 
@@ -57,16 +59,6 @@ def get_ingredients(recipe):
     return {"ingredients": ingredients}
 
 
-def main(request):
-    recipes = Recipe.objects.all()
-    paginator, page = make_pagination(request, recipes, 6)
-    context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
-    context.update(get_recipes_tags(page))
-    context.update(get_authors(page))
-    context.update(get_authors_names(page))
-    return render(request, "index.html", context)
-
-
 def is_editable(author, user):
     editable = bool(user.is_authenticated and user == author)
     return {"can_edit": editable}
@@ -82,6 +74,16 @@ def can_subscribe(author, user):
     return {"not_sobscribed": not_sobscribed}
 
 
+def main(request):
+    recipes = Recipe.objects.all()
+    paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
+    context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update(get_recipes_tags(page))
+    context.update(get_authors(page))
+    context.update(get_authors_names(page))
+    return render(request, "index.html", context)
+
+
 def recipe_view(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
     tags_names = recipe.tag.values("name", "eng_name", "color")
@@ -94,7 +96,7 @@ def recipe_view(request, recipe_slug):
 def user_view(request, username):
     author = get_object_or_404(User, username=username)
     recipes = author.recipes.all()
-    paginator, page = make_pagination(request, recipes, 6)
+    paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
     context.update({"author": author})
     context.update(get_recipes_tags(page))
@@ -155,3 +157,29 @@ def recipe_delete(request, recipe_slug):
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe.delete()
     return redirect("index")
+
+
+def gen_data():
+    with open("names.txt", "r") as file:
+        for f in file:
+            first, last = f.split()
+            username = slugify(f)
+            User.objects.create(
+                first_name=first, last_name=last, username=username
+            )
+
+
+@login_required
+def follow_view(request):
+    user = request.user
+    authors = User.objects.filter(following__user=user)
+    paginator, page = make_pagination(request, authors, FOLLOW_PAGE_SIZE)
+    amount_hidden, authors_names, recipes = {}, {}, {}
+    for author in authors:
+        amount_hidden[author.id] = author.recipes.count() - FOLLOW_PAGE_SIZE
+        authors_names[author.id] = get_name(author)
+        recipes[author.id] = author.recipes.all()[:RECIPES_FOLLOW_PAGE]
+    context = {"paginator": paginator, "page": page}
+    context.update({"amount_hidden": amount_hidden})
+    gen_data()
+    return render(request, "follow_page.html", context)

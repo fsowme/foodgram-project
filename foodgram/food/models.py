@@ -25,6 +25,7 @@ class Food(models.Model):
     counted = models.BooleanField(blank=False, null=False, default=True)
 
     class Meta:
+        ordering = ["name"]
         unique_together = ["name", "unit"]
 
     def __str__(self):
@@ -79,6 +80,7 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        ordering = ["recipe"]
         unique_together = ["food", "recipe"]
 
     def save(self, *args, **kwargs):
@@ -100,8 +102,12 @@ class Follow(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="following"
     )
+    follow_date = models.DateTimeField(
+        verbose_name="Дата публикации рецепта", auto_now_add=True
+    )
 
     class Meta:
+        ordering = ["-follow_date"]
         unique_together = ["user", "author"]
         constraints = [
             models.CheckConstraint(
