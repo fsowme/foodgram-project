@@ -3,7 +3,7 @@
 <html>
 {% block head%}
 {% endblock %}
-
+{% csrf_token %}
 <body class="body">
     {% include 'include/menu.html' %}
     {% block content %}

@@ -131,6 +131,7 @@ def recipe_new(request):
     recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
+        print(instance.author)
         instance.author = request.user
         instance.save()
         instance.tag.set(recipe_form.cleaned_data["tag"])

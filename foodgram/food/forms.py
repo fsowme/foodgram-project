@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import widgets
 
-from .models import Food, Ingredient, Recipe, Tag
+from .models import Food, Recipe, Tag
 
 
 class RecipeForm(forms.ModelForm):
@@ -10,7 +10,6 @@ class RecipeForm(forms.ModelForm):
         widget=widgets.CheckboxSelectMultiple(),
         required=False,
     )
-    # image = forms.ImageField(required=False)
     amount = forms.MultipleChoiceField(required=False)
     food = forms.MultipleChoiceField(required=False)
 
@@ -23,9 +22,6 @@ class RecipeForm(forms.ModelForm):
             "tag",
             "image",
         ]
-        # widgets = {
-        #     "tags": forms.CheckboxSelectMultiple(),
-        # }
 
     def clean_food(self):
         food_names = self.data.getlist("nameIngredient")
@@ -47,9 +43,4 @@ class RecipeForm(forms.ModelForm):
                 ingredient = Food.objects.get(name=name, unit=unit)
                 cleaned_food[ingredient] = food_amount[count]
         self.cleaned_data["food"] = cleaned_food
-        print(cleaned_food, self.cleaned_data["food"], "*******")
         return self.cleaned_data["food"]
-
-    def clean_image(self):
-        print(self.cleaned_data)
-        return self.cleaned_data["image"]
