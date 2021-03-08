@@ -29,7 +29,6 @@
     </div>
     {% endif %}
 
-
     <div class="card-list">
         {% if request.resolver_match.url_name == 'index' %}
         {% for recipe in page %}
@@ -37,7 +36,6 @@
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
         {% endwith %}
         {% endfor %}
-
 
         {% elif request.resolver_match.url_name == 'user' %}
         {% with author=author name=author_name %}
