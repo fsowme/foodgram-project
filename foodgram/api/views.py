@@ -1,8 +1,12 @@
+from django.db import models
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
+from rest_framework.response import Response
 from food.models import Follow, Food
 from rest_framework import mixins, viewsets
+from rest_framework.decorators import action, api_view
 
+from .custom_viewsets import CreateDestroyViewSet
 from .serializers import FoodSerializer, SubscriptionsSerializer
 
 
@@ -16,19 +20,18 @@ class FoodsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         raise Http404("No query parameter.")
 
 
-class SubscriptionsViewSet(viewsets.ModelViewSet):
+class SubscribeViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriptionsSerializer
+    queryset = Follow.objects.all()
+    lookup_field = "author"
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        print(request.POST)
-        return super().create(request, *args, **kwargs)
+        super().create(request, *args, **kwargs)
+        return Response({"success": True})
 
-    def get_queryset(self):
-        print("***************************")
-        print(self.request)
-        return Follow.objects.all()
-
-
-def test(request):
-    print(request.POST, "************")
-    return HttpResponse("OK")
+    def destroy(self, request, *args, **kwargs):
+        super().destroy(request, *args, **kwargs)
+        return Response({"success": True})

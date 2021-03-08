@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import request
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from users.models import User
@@ -71,12 +72,14 @@ def is_editable(author, user):
     return {"can_edit": editable}
 
 
-def is_following(author, user):
-    follow = bool(
+def can_subscribe(author, user):
+    not_sobscribed = bool(
         user.is_authenticated
-        and Follow.objects.filter(author=author, user=user).exists()
+        and author != user
+        and not Follow.objects.filter(author=author, user=user).exists()
     )
-    return {"follow": follow}
+    print(not_sobscribed)
+    return {"not_sobscribed": not_sobscribed}
 
 
 def recipe_view(request, recipe_slug):
@@ -96,7 +99,7 @@ def user_view(request, username):
     context.update({"author": author})
     context.update(get_recipes_tags(page))
     context.update(get_name(author))
-    context.update({"can_subscribe": author == request.user})
+    context.update(can_subscribe(author, request.user))
     return render(request, "index.html", context)
 
 

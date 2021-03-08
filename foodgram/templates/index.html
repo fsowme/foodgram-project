@@ -22,12 +22,10 @@
             {% endfor %}
         </ul>
     </div>
-
     {% if user.is_authenticated and request.resolver_match.url_name == 'user' %}
-           <!-- <p style="padding: 0 0 2em 0;"><a class="button button_style_light-blue" href="#">Подписаться на автора</a></p> -->
-    <div class="author-subscribe">
-        <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe"
-                name="subscribe" data-out>Подписаться на автора</button></p>
+    <div class="author-subscribe" data-author="{{ author.id }}">
+        <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" 
+            name="subscribe" {% if not_sobscribed %}data-out>Подписаться на автора{% else %}>Отписаться от автора{% endif %}</button></p>
     </div>
     {% endif %}
 
