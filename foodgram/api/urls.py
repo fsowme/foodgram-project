@@ -4,9 +4,6 @@ from rest_framework.routers import DefaultRouter
 from .views import BookmarkViewSet, FoodsViewSet, SubscribeViewSet
 
 
-# snippet_detail = BookmarkViewSet.as_view({"delete": "destroy"})
-
-
 router = DefaultRouter()
 router.register("food", FoodsViewSet, basename="food")
 router.register("subscribe", SubscribeViewSet, basename="subscribe")
