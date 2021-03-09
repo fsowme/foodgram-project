@@ -87,6 +87,26 @@ def recipes_in_bookmarks(user, recipes):
     return {"bookmarks": bookmarks}
 
 
+def filter_by_tags(request, queryset):
+
+    pass
+
+
+def user_view(request, username):
+    author = get_object_or_404(User, username=username)
+    recipes = author.recipes.all()
+    paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
+    context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update({"author": author})
+    context.update(get_recipes_tags(page))
+    context.update(get_name(author))
+    context.update(can_subscribe(author, request.user))
+    if request.user.is_authenticated:
+        context.update(is_subscribed(author, request.user))
+        context.update(recipes_in_bookmarks(request.user, page))
+    return render(request, "index.html", context)
+
+
 @login_required
 def bookmarks_view(request):
     user = request.user
@@ -96,11 +116,12 @@ def bookmarks_view(request):
     context.update(get_recipes_tags(page))
     context.update(get_authors(page))
     context.update(get_authors_names(page))
-    context.update(recipes_in_bookmarks(user, recipes))
+    context.update(recipes_in_bookmarks(user, page))
     return render(request, "index.html", context)
 
 
-def main(request):
+def main(request, tag=None):
+    print(tag)
     recipes = Recipe.objects.all()
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
@@ -108,7 +129,7 @@ def main(request):
     context.update(get_authors(page))
     context.update(get_authors_names(page))
     if request.user.is_authenticated:
-        context.update(recipes_in_bookmarks(request.user, recipes))
+        context.update(recipes_in_bookmarks(request.user, page))
     return render(request, "index.html", context)
 
 
@@ -154,7 +175,9 @@ def recipe_edit(request, recipe_slug):
 
 
 @login_required
-def recipe_new(request):
+def recipe_new(request, year=None):
+    print(request)
+    print(year)
     recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
@@ -198,23 +221,7 @@ def follow_view(request):
     context.update({"count_hidden": count_hidden})
     context.update({"authors_names": authors_names})
     context.update({"recipes": recipes})
-    # context.update({})
     return render(request, "follow_page.html", context)
-
-
-def user_view(request, username):
-    author = get_object_or_404(User, username=username)
-    recipes = author.recipes.all()
-    paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
-    context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
-    context.update({"author": author})
-    context.update(get_recipes_tags(page))
-    context.update(get_name(author))
-    context.update(can_subscribe(author, request.user))
-    if request.user.is_authenticated:
-        context.update(is_subscribed(author, request.user))
-        context.update(recipes_in_bookmarks(request.user, recipes))
-    return render(request, "index.html", context)
 
 
 # def gen_data():
