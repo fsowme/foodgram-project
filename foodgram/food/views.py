@@ -70,7 +70,6 @@ def can_subscribe(author, user):
         and author != user
         and not Follow.objects.filter(author=author, user=user).exists()
     )
-    print(not_sobscribed)
     return {"not_sobscribed": not_sobscribed}
 
 
@@ -136,7 +135,6 @@ def recipe_new(request):
     recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
-        print(instance.author)
         instance.author = request.user
         instance.save()
         instance.tag.set(recipe_form.cleaned_data["tag"])
@@ -159,27 +157,30 @@ def recipe_delete(request, recipe_slug):
     return redirect("index")
 
 
-def gen_data():
-    with open("names.txt", "r") as file:
-        for f in file:
-            first, last = f.split()
-            username = slugify(f)
-            User.objects.create(
-                first_name=first, last_name=last, username=username
-            )
-
-
 @login_required
 def follow_view(request):
     user = request.user
-    authors = User.objects.filter(following__user=user)
+    authors = User.objects.filter(following__user=user).order_by(
+        "-following__follow_date"
+    )
     paginator, page = make_pagination(request, authors, FOLLOW_PAGE_SIZE)
     amount_hidden, authors_names, recipes = {}, {}, {}
-    for author in authors:
+    for author in page:
         amount_hidden[author.id] = author.recipes.count() - FOLLOW_PAGE_SIZE
-        authors_names[author.id] = get_name(author)
+        authors_names[author.id] = get_name(author)["author_name"]
         recipes[author.id] = author.recipes.all()[:RECIPES_FOLLOW_PAGE]
     context = {"paginator": paginator, "page": page}
     context.update({"amount_hidden": amount_hidden})
-    gen_data()
+    context.update({"authors_names": authors_names})
+    context.update({"recipes": recipes})
     return render(request, "follow_page.html", context)
+
+
+# def gen_data():
+#     with open("names.txt", "r") as file:
+#         for f in file:
+#             first, last = f.split()
+#             username = slugify(f)
+#             User.objects.create(
+#                 first_name=first, last_name=last, username=username
+#             )
