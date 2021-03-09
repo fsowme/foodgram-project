@@ -1,7 +1,6 @@
-from rest_framework.fields import CurrentUserDefault
 from food.models import Bookmark, Follow, Food, Recipe
 from rest_framework import serializers
-
+from rest_framework.fields import CurrentUserDefault
 from users.models import User
 
 
@@ -16,7 +15,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        queryset=User.objects.all(), slug_field="pk"
+        queryset=User.objects.all(), slug_field="username"
     )
     user = serializers.SlugRelatedField(
         default=CurrentUserDefault(), read_only=True, slug_field="pk"
@@ -24,7 +23,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        lookup_field = "author"
+        lookup_field = "author__username"
         fields = ["user", "author"]
 
 

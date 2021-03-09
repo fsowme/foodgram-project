@@ -22,25 +22,27 @@
             {% endfor %}
         </ul>
     </div>
-    {% if user.is_authenticated and request.resolver_match.url_name == 'user' %}
-    <div class="author-subscribe" data-author="{{ author.id }}">
+    {% if can_subscribe %}
+    <div class="author-subscribe" data-author="{{ author.username }}">
         <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" 
-            name="subscribe" {% if not_sobscribed %}data-out>Подписаться на автора{% else %}>Отписаться от автора{% endif %}</button></p>
+            name="subscribe" {% if subscribed %}>Отписаться от автора{% else %}data-out>Подписаться на автора{% endif %}</button></p>
     </div>
     {% endif %}
-
+    
     <div class="card-list">
         {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmarks' %}
         {% for recipe in page %}
-        {% with author=authors|get_from_dict:recipe.id name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+        {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
+        {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
+        {% endwith %}
         {% endwith %}
         {% endfor %}
 
         {% elif request.resolver_match.url_name == 'user' %}
         {% with author=author name=author_name %}
         {% for recipe in page %}
-        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
         {% endwith %}
         {% endfor %}
@@ -71,8 +73,11 @@
 
 
 
-{% if request.resolver_match.url_name == 'index' %}
+{% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmarks' %}
 <script src="{% static 'js/components/CardList.js' %}"></script>
+{% if request.resolver_match.url_name == 'bookmarks' %}
+<script src="{% static 'favorite.js' %}"></script>
+{% endif %}
 {% if user.is_authenticated %}
 <script src="{% static 'indexAuth.js' %}"></script>
 {% else %}
