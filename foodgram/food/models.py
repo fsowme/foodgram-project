@@ -115,3 +115,15 @@ class Follow(models.Model):
                 check=~models.Q(user=models.F("author")),
             )
         ]
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="bookmarks"
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name="in_bookmark"
+    )
+
+    class Meta:
+        unique_together = ["user", "recipe"]

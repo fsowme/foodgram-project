@@ -30,7 +30,7 @@
     {% endif %}
 
     <div class="card-list">
-        {% if request.resolver_match.url_name == 'index' %}
+        {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmarks' %}
         {% for recipe in page %}
         {% with author=authors|get_from_dict:recipe.id name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
@@ -40,7 +40,7 @@
         {% elif request.resolver_match.url_name == 'user' %}
         {% with author=author name=author_name %}
         {% for recipe in page %}
-        {% with recipes_tags=recipes_tags|get_from_dict:recipe.id %}
+        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
         {% endwith %}
         {% endfor %}

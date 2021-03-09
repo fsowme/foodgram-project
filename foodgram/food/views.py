@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from users.models import User
 
@@ -10,6 +11,7 @@ from .models import Follow, Ingredient, Recipe, Tag
 
 INDEX_PAGE_SIZE = 6
 FOLLOW_PAGE_SIZE = 3
+BOOKMARK_PAGE_SIZE = 6
 RECIPES_FOLLOW_PAGE = 3
 
 
@@ -73,6 +75,17 @@ def can_subscribe(author, user):
     return {"not_sobscribed": not_sobscribed}
 
 
+def bookmarks_view(request):
+    user = request.user
+    recipes = Recipe.objects.filter(in_bookmark__user=user)
+    paginator, page = make_pagination(request, recipes, BOOKMARK_PAGE_SIZE)
+    context = {"paginator": paginator, "page": page, "tags": Tag.objects.all()}
+    context.update(get_recipes_tags(page))
+    context.update(get_authors(page))
+    context.update(get_authors_names(page))
+    return render(request, "index.html", context)
+
+
 def main(request):
     recipes = Recipe.objects.all()
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
@@ -86,9 +99,10 @@ def main(request):
 def recipe_view(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
     tags_names = recipe.tag.values("name", "eng_name", "color")
-    context = {"recipe": recipe, "tags": tags_names}
+    context = {"recipe": recipe, "tags": tags_names, "author": recipe.author}
     context.update(get_name(recipe.author))
     context.update(is_editable(recipe.author, request.user))
+    context.update(can_subscribe(recipe.author, request.user))
     return render(request, "recipe_page.html", context)
 
 

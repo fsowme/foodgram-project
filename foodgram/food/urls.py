@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
@@ -7,6 +5,7 @@ from . import views
 urlpatterns = [
     path("", views.main, name="index"),
     path("new/", views.recipe_new, name="new"),
+    path("bookmarks", views.bookmarks_view, name="bookmarks"),
     path("<slug:recipe_slug>/edit/", views.recipe_edit, name="edit"),
     path("<str:recipe_slug>/delete/", views.recipe_delete, name="delete"),
     path("<slug:recipe_slug>/", views.recipe_view, name="recipe"),
