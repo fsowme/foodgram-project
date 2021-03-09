@@ -9,14 +9,15 @@
 <main class="main container">
     <div class="main__header">
         {% if request.resolver_match.url_name == 'index' %}
-        <h1 class="main__title">Рецепты</h1>
+        <h1 class="main__title">Рецепты {{ url }} | {{request.resolver_match.url_name}}</h1>
         {% elif request.resolver_match.url_name == 'user' %}
         <h1 class="main__title">{{ author_name }}</h1>
         {% endif %}
         <ul class="tags">
             {% for tag in tags %}
             <li class="tags__item">
-                <a id="{{ tag.eng_name }}" class="tags__checkbox tags__checkbox_style_{{ tag.color }} tags__checkbox_active" href="#"></a>
+                <a id="{{ tag.eng_name }}" class="tags__checkbox tags__checkbox_style_{{ tag.color }} tags__checkbox_active" 
+                    href="#"></a>
                 <span class="tags__label">{{ tag.name }}</span>
             </li>
             {% endfor %}

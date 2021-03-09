@@ -29,7 +29,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
 class BookmarkSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(
-        default=CurrentUserDefault(), read_only=True, slug_field="pk"
+        default=CurrentUserDefault(), read_only=True, slug_field="id"
     )
     recipe = serializers.SlugRelatedField(
         queryset=Recipe.objects.all(), slug_field="slug"
@@ -39,7 +39,3 @@ class BookmarkSerializer(serializers.ModelSerializer):
         model = Bookmark
         lookup_field = "recipe__slug"
         fields = ["user", "recipe"]
-
-    def get_value(self, dictionary):
-        print(dictionary)
-        return super().get_value(dictionary)

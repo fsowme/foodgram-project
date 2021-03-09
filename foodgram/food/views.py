@@ -88,8 +88,8 @@ def recipes_in_bookmarks(user, recipes):
 
 
 def filter_by_tags(request, queryset):
-
-    pass
+    tags = request.GET.get("tag")
+    return queryset.objects.filter(tag__eng_name__in=tags).distinct()
 
 
 def user_view(request, username):
@@ -120,8 +120,7 @@ def bookmarks_view(request):
     return render(request, "index.html", context)
 
 
-def main(request, tag=None):
-    print(tag)
+def main(request):
     recipes = Recipe.objects.all()
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
@@ -175,9 +174,7 @@ def recipe_edit(request, recipe_slug):
 
 
 @login_required
-def recipe_new(request, year=None):
-    print(request)
-    print(year)
+def recipe_new(request):
     recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)

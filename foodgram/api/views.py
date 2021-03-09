@@ -1,6 +1,6 @@
 from django.db import models
 from django.http.response import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from food.models import Bookmark, Follow, Food
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action, api_view
@@ -49,9 +49,17 @@ class BookmarkViewSet(CreateDestroyViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def get_queryset(self):
+        queryset = Bookmark.objects.filter(user=self.request.user)
+        return queryset
+
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
         return Response({"success": True})
+
+    def perform_destroy(self, instance):
+        instance.user = self.request.user
+        return super().perform_destroy(instance)
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
