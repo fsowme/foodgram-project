@@ -24,7 +24,7 @@ class FoodsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         raise Http404("No query parameter.")
 
 
-class SubscribeViewSet(viewsets.ModelViewSet):
+class SubscribeViewSet(CreateDestroyViewSet):
     serializer_class = SubscriptionsSerializer
     queryset = Follow.objects.all()
     lookup_field = "author__username"
@@ -41,7 +41,7 @@ class SubscribeViewSet(viewsets.ModelViewSet):
         return Response({"success": True})
 
 
-class BookmarkViewSet(viewsets.ModelViewSet):
+class BookmarkViewSet(CreateDestroyViewSet):
     serializer_class = BookmarkSerializer
     queryset = Bookmark.objects.all()
     lookup_field = "recipe__slug"
