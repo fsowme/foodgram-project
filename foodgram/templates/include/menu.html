@@ -16,14 +16,14 @@
                     <a href="{% url 'new' %}" class="nav__link link">Создать рецепт</a>
                 </li>
                 <li
-                    class="nav__item {% if request.resolver_match.url_name == 'bookmarks' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
-                    <a href="{% url 'bookmarks' %}" class="nav__link link">Избранное</a>
+                    class="nav__item {% if request.resolver_match.url_name == 'bookmark' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
+                    <a href="{% url 'bookmark' %}" class="nav__link link">Избранное</a>
                 </li>
                 {% endif %}
                 <li
-                    class="nav__item {% if request.resolver_match.url_name == 'shop_list' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
-                    <a href="#" class="nav__link link">Список покупок</a> <span
-                        class="badge badge_style_blue nav__badge" id="counter">4</span>
+                    class="nav__item {% if request.resolver_match.url_name == 'purchase' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
+                    <a href="{% url 'purchase' %}" class="nav__link link">Список покупок</a> <span
+                        class="badge badge_style_blue nav__badge" id="counter">{{ amount_purchases }}</span>
                 </li>
 
             </ul>

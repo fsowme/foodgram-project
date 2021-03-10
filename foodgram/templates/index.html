@@ -9,7 +9,7 @@
 <main class="main container">
     <div class="main__header">
         {% if request.resolver_match.url_name == 'index' %}
-        <h1 class="main__title">Рецепты {{ url }} | {{request.resolver_match.url_name}}</h1>
+        <h1 class="main__title">Рецепты</h1>
         {% elif request.resolver_match.url_name == 'user' %}
         <h1 class="main__title">{{ author_name }}</h1>
         {% endif %}
@@ -30,12 +30,15 @@
     </div>
     {% endif %}
     
+
     <div class="card-list">
-        {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmarks' %}
+        {% if request.resolver_match.url_name == 'index' %}
         {% for recipe in page %}
+        {% with purchase=purchases|get_from_dict:recipe.id %}
         {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
         {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
+        {% endwith %}
         {% endwith %}
         {% endwith %}
         {% endfor %}
@@ -43,14 +46,28 @@
         {% elif request.resolver_match.url_name == 'user' %}
         {% with author=author name=author_name %}
         {% for recipe in page %}
+        {% with purchase=purchases|get_from_dict:recipe.id %}
         {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
         {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
         {% endwith %}
+        {% endwith %}
         {% endfor %}
         {% endwith %}
+        
+        {% elif request.resolver_match.url_name == 'bookmark' %}
+        {% for recipe in page %}
+        {% with purchase=purchases|get_from_dict:recipe.id %}
+        {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
+        {% with name=authors_names|get_from_dict:recipe.id %}
+        {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+        {% endfor %}
         {% endif %}
-
     </div>
+
+
     {% if page.has_other_pages %}
     {% include 'include/paginator.html' with items=page paginator=paginator %}
     {% endif %}
@@ -74,9 +91,9 @@
 
 
 
-{% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmarks' %}
+{% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmark' %}
 <script src="{% static 'js/components/CardList.js' %}"></script>
-{% if request.resolver_match.url_name == 'bookmarks' %}
+{% if request.resolver_match.url_name == 'bookmark' %}
 <script src="{% static 'favorite.js' %}"></script>
 {% endif %}
 {% if user.is_authenticated %}

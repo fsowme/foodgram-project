@@ -127,3 +127,15 @@ class Bookmark(models.Model):
 
     class Meta:
         unique_together = ["user", "recipe"]
+
+
+class Purchase(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="purchases"
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name="in_purchases"
+    )
+
+    class Meta:
+        unique_together = ["user", "recipe"]
