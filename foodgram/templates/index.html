@@ -32,39 +32,52 @@
     
 
     <div class="card-list">
-        {% if request.resolver_match.url_name == 'index' %}
-        {% for recipe in page %}
-        {% with purchase=purchases|get_from_dict:recipe.id %}
-        {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
-        {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
-        {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
-        {% endwith %}
-        {% endwith %}
-        {% endwith %}
-        {% endfor %}
-
-        {% elif request.resolver_match.url_name == 'user' %}
-        {% with author=author name=author_name %}
-        {% for recipe in page %}
-        {% with purchase=purchases|get_from_dict:recipe.id %}
-        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
-        {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
-        {% endwith %}
-        {% endwith %}
-        {% endfor %}
-        {% endwith %}
-        
-        {% elif request.resolver_match.url_name == 'bookmark' %}
-        {% for recipe in page %}
-        {% with purchase=purchases|get_from_dict:recipe.id %}
-        {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
-        {% with name=authors_names|get_from_dict:recipe.id %}
-        {% include 'include/recipe_card.html' with author=author name=name recipe_tags=recipe_tags recipe=recipe %}
-        {% endwith %}
-        {% endwith %}
-        {% endwith %}
-        {% endfor %}
+        {% if user.is_authenticated %}
+            {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmark' %}
+                {% for recipe in page %}
+                    {% with purchase=purchases|get_from_dict:recipe.id %}
+                    {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
+                    {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+                        {% include 'include/recipe_card.html' %}
+                    {% endwith %}
+                    {% endwith %}
+                    {% endwith %}
+                {% endfor %}\
+            {% elif request.resolver_match.url_name == 'user' %}
+                {% with author=author name=author_name %}
+                    {% for recipe in page %}
+                        {% with purchase=purchases|get_from_dict:recipe.id %}
+                        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
+                            {% include 'include/recipe_card.html' %}
+                        {% endwith %}
+                        {% endwith %}
+                    {% endfor %}
+                {% endwith %}
+            {% endif %}
+        {% else %}
+            {% if request.resolver_match.url_name == 'index' %}
+                {% for recipe in page %}
+                    {% with author=authors|get_from_dict:recipe.id purchase=purchases|get_from_dict:recipe.id  %}
+                    {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+                        {% include 'include/recipe_card.html' %}
+                    {% endwith %}
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                {% with author=author name=author_name %}
+                    {% for recipe in page %}
+                        {% with purchase=purchases|get_from_dict:recipe.id  %}
+                        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+                            {% include 'include/recipe_card.html' %}
+                        {% endwith %}
+                        {% endwith %}
+                    {% endfor %}
+                {% endwith %}
+            {% endif %}
         {% endif %}
+
+
+
     </div>
 
 

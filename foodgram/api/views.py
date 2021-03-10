@@ -1,9 +1,11 @@
-from django.db import models
-from django.http.response import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, render
-from food.models import Bookmark, Follow, Food, Purchase
+from django.http.response import Http404
+from django.shortcuts import get_object_or_404
+from food.models import Follow, Food, Purchase, Recipe
 from rest_framework import mixins, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.authentication import (
+    BasicAuthentication,
+    SessionAuthentication,
+)
 from rest_framework.response import Response
 
 from .custom_viewsets import CreateDestroyViewSet
@@ -63,21 +65,35 @@ class BookmarkViewSet(CreateDestroyViewSet):
 
 
 class PurchaseViewSet(CreateDestroyViewSet):
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
     serializer_class = PurchaseSerializer
     lookup_field = "recipe__slug"
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            recipe_slug = self.request.data.get("recipe")
+            self.request.session[recipe_slug] = True
 
     def get_queryset(self):
-        self.request.user.bookmarks.all()
-        queryset = self.request.user.purchases.all()
-        return queryset
+        if not self.request.user.is_authenticated:
+            slugs = self.request.session.keys()
+            return Purchase.objects.none()
+        return self.request.user.purchases.all()
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
         return Response({"success": True})
 
     def destroy(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            slug = self.kwargs.get("recipe__slug")
+            get_object_or_404(Recipe, slug=slug)
+            if self.request.session.get(slug):
+                del self.request.session[slug]
+                return Response({"success": True})
+            return Response({"success": False})
+
         super().destroy(request, *args, **kwargs)
         return Response({"success": True})

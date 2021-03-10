@@ -1,4 +1,7 @@
+from random import randint
+
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from users.models import User
@@ -15,7 +18,7 @@ BOOKMARK_PAGE_SIZE = 3
 
 def make_pagination(request, elements, total_on_page):
     paginator = Paginator(elements, total_on_page)
-    page_number = request.GET.get("page")
+    page_number = request.GET.get("page", 0)
     page = paginator.get_page(page_number)
     return paginator, page
 
@@ -86,17 +89,28 @@ def recipes_in_bookmarks(user, recipes):
     return {"bookmarks": bookmarks}
 
 
-def check_purchase(user, recipe):
-    in_purchase = user.purchases.filter(recipe=recipe).exists()
-    return {"in_purchase": in_purchase}
+def amount_purchases(request):
+    if request.user.is_authenticated:
+        return {"amount_purchases": request.user.purchases.count()}
+    slugs = request.session.keys()
+    return {"amount_purchases": Recipe.objects.filter(slug__in=slugs).count()}
 
 
-def amount_purchases(user):
-    return {"amount_purchases": user.purchases.count()}
+def check_purchase(request, recipe):
+    if request.user.is_authenticated:
+        in_purchase = request.user.purchases.filter(recipe=recipe).exists()
+        return {"in_purchase": in_purchase}
+    return {"in_purchase": bool(recipe.slug in request.session.keys())}
 
 
-def recipes_in_purchases(user, recipes):
-    purchases = {_.id: check_purchase(user, _)["in_purchase"] for _ in recipes}
+def recipes_in_purchases(request, recipes):
+    if request.user.is_authenticated:
+        purchases = {
+            _.id: check_purchase(request, _)["in_purchase"] for _ in recipes
+        }
+        return {"purchases": purchases}
+    slugs = request.session.keys()
+    purchases = {_.id: str(_.slug) in slugs for _ in recipes}
     return {"purchases": purchases}
 
 
@@ -112,10 +126,9 @@ def main(request):
     context.update(get_recipes_tags(page))
     context.update(get_authors(page))
     context.update(get_authors_names(page))
-    context.update(recipes_in_purchases(request.user, page))
-    context.update(amount_purchases(request.user))
-    if request.user.is_authenticated:
-        context.update(recipes_in_bookmarks(request.user, page))
+    context.update(recipes_in_purchases(request, page))
+    context.update(amount_purchases(request))
+    context.update(recipes_in_bookmarks(request.user, page))
     return render(request, "index.html", context)
 
 
@@ -127,12 +140,13 @@ def user_view(request, username):
     context.update({"author": author})
     context.update(get_recipes_tags(page))
     context.update(get_name(author))
-    context.update(can_subscribe(author, request.user))
-    context.update(recipes_in_purchases(request.user, page))
-    context.update(amount_purchases(request.user))
+    context.update(recipes_in_purchases(request, page))
+    context.update(amount_purchases(request))
     if request.user.is_authenticated:
-        context.update(is_subscribed(author, request.user))
+        context.update(can_subscribe(author, request.user))
         context.update(recipes_in_bookmarks(request.user, page))
+        context.update(is_subscribed(author, request.user))
+    print(context)
     return render(request, "index.html", context)
 
 
@@ -146,8 +160,8 @@ def bookmark_view(request):
     context.update(get_authors(page))
     context.update(get_authors_names(page))
     context.update(recipes_in_bookmarks(user, page))
-    context.update(recipes_in_purchases(request.user, page))
-    context.update(amount_purchases(request.user))
+    context.update(recipes_in_purchases(request, page))
+    context.update(amount_purchases(request))
     return render(request, "index.html", context)
 
 
@@ -158,7 +172,8 @@ def recipe_view(request, recipe_slug):
     context.update(get_name(recipe.author))
     context.update(is_editable(recipe.author, request.user))
     context.update(can_subscribe(recipe.author, request.user))
-    context.update(amount_purchases(request.user))
+    context.update(amount_purchases(request))
+    context.update(check_purchase(request, recipe))
     if request.user.is_authenticated:
         context.update(is_subscribed(recipe.author, request.user))
         context.update(check_bookmark(request.user, recipe))
@@ -189,7 +204,7 @@ def recipe_edit(request, recipe_slug):
         instance.save()
         return redirect("recipe", recipe_slug=recipe_slug)
     context = {"form": recipe_form, "tags": Tag.objects.all()}
-    context.update(amount_purchases(request.user))
+    context.update(amount_purchases(request))
     context.update(get_ingredients(recipe))
     return render(request, "recipe_edit_page.html", context)
 
@@ -209,7 +224,7 @@ def recipe_new(request):
             )
         return redirect("index")
     context = {"form": recipe_form, "tags": Tag.objects.all()}
-    context.update(amount_purchases(request.user))
+    context.update(amount_purchases(request))
     return render(request, "recipe_edit_page.html", context)
 
 
@@ -240,20 +255,22 @@ def follow_view(request):
     context.update({"count_hidden": count_hidden})
     context.update({"authors_names": authors_names})
     context.update({"recipes": recipes})
-    context.update(amount_purchases(request.user))
+    context.update(amount_purchases(request))
     return render(request, "follow_page.html", context)
 
 
 def purchase_view(request, recipe_slug=None):
-    if recipe_slug:
-        recipe = Recipe.objects.get(slug=recipe_slug)
-        print(recipe)
-        purchase = get_object_or_404(Purchase, recipe__slug=recipe_slug)
-        print(purchase)
-        # purchase.delete()
-        return redirect("purchase")
-    recipes = Recipe.objects.filter(in_purchases__user=request.user)
-    paginator, page = make_pagination(request, recipes, BOOKMARK_PAGE_SIZE)
-    context = {"paginator": paginator, "page": page}
-    context.update(amount_purchases(request.user))
+    if not request.user.is_authenticated:
+        if slugs := request.session.keys():
+            if recipe_slug:
+                del request.session[recipe_slug]
+        recipes = Recipe.objects.filter(slug__in=slugs)
+    else:
+        if recipe_slug:
+            purchase = get_object_or_404(
+                Purchase, user=request.user, recipe__slug=recipe_slug
+            )
+            purchase.delete()
+        recipes = Recipe.objects.filter(in_purchases__user=request.user)
+    context = {"amount_purchases": recipes.count(), "recipes": recipes}
     return render(request, "purchase_page.html", context)

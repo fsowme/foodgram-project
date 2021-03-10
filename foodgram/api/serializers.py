@@ -53,3 +53,9 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         lookup_field = "recipe__slug"
         fields = ["user", "recipe"]
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = "__all__"

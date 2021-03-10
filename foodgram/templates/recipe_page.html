@@ -47,8 +47,14 @@
                 </ul>
             </div>
             <ul class="single-card__items">
+                {% if in_purchase %}
+                <li class="single-card__item"><button class="button button_style_light-blue-outline" name="purchases"><span 
+                    class="icon-check button__icon"></span> Рецепт добавлен</button></li>
+                {% else %}
                 <li class="single-card__item"><button class="button button_style_blue" name="purchases" data-out><span
-                            class="icon-plus"></span> Добавить в покупки</button></li>
+                    class="icon-plus"></span> Добавить в покупки</button></li>
+                {% endif %}
+                
                 {% if can_subscribe %}
                 <li class="single-card__item"><button class="button button_style_light-blue button_size_subscribe"
                     name="subscribe" {% if subscribed %}>Отписаться от автора{% else %} data-out>Подписаться на автора{% endif %}</button></li>
