@@ -8,6 +8,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context
 from django.template.loader import get_template
+
 # from reportlab.pdfgen import canvas
 from users.models import User
 
@@ -120,12 +121,15 @@ def recipes_in_purchases(request, recipes):
 
 
 def filter_by_tags(request, queryset):
-    tags = request.GET.get("tag")
-    return queryset.objects.filter(tag__eng_name__in=tags).distinct()
+    tags_names = list(Tag.objects.values_list("eng_name", flat=True))
+    tags = request.GET.getlist("tag", tags_names)
+    print(request.GET)
+    print(tags)
+    return queryset.filter(tag__eng_name__in=tags).distinct()
 
 
 def main(request):
-    recipes = Recipe.objects.all()
+    recipes = filter_by_tags(request, Recipe.objects.all())
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
     context.update(get_recipes_tags(page))
@@ -284,11 +288,12 @@ def purchase_view(request, recipe_slug=None, download=None):
         file = StringIO()
         for ingredient in ingredients_list(ingredients):
             print(ingredient)
-            file.write(f'{ingredient}\n')
-        response = HttpResponse(file.getvalue(),  content_type="application/default")
-        response['Content-Disposition'] = 'attachment; filename=ingrs.txt'
+            file.write(f"{ingredient}\n")
+        response = HttpResponse(
+            file.getvalue(), content_type="application/default"
+        )
+        response["Content-Disposition"] = "attachment; filename=ingrs.txt"
         return response
-
 
     return render(request, "purchase_page.html", context)
 
