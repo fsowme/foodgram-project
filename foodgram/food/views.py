@@ -1,15 +1,19 @@
 import io
 
-import pdfkit
+import django
+
+# import pdfkit
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import FileResponse
+from django.http import FileResponse, response
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context
 from django.template.loader import get_template
-from reportlab.pdfgen import canvas
+
+# from reportlab.pdfgen import canvas
 from users.models import User
+
 
 from .forms import RecipeForm
 from .models import Bookmark, Follow, Ingredient, Purchase, Recipe, Tag
@@ -23,7 +27,7 @@ BOOKMARK_PAGE_SIZE = 3
 
 def make_pagination(request, elements, total_on_page):
     paginator = Paginator(elements, total_on_page)
-    page_number = request.GET.get("page", 0)
+    page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
     return paginator, page
 
@@ -265,7 +269,6 @@ def follow_view(request):
 
 
 def purchase_view(request, recipe_slug=None, download=None):
-    print(download)
     if not request.user.is_authenticated:
         if slugs := request.session.keys():
             if recipe_slug:
@@ -279,43 +282,35 @@ def purchase_view(request, recipe_slug=None, download=None):
             purchase.delete()
         recipes = Recipe.objects.filter(in_purchases__user=request.user)
     context = {"amount_purchases": recipes.count(), "recipes": recipes}
-    ingredients_list(Ingredient.objects.filter(recipe__in=recipes))
+    if download:
+        ingredients = Ingredient.objects.filter(recipe__in=recipes)
+        context.update({"shopping": ingredients_list(ingredients)})
+        with open("shopping_list", "w") as file:
+            for ingredient in ingredients:
+                file.write(f"{ingredients}\n")
+
     return render(request, "purchase_page.html", context)
 
 
-
-def make_pdf():
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer)
-    p.drawString(100, 100, "Hello world.")
-    p.showPage()
-    p.save()
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
-
-
 def ingredients_list(ingredients):
-    shopping_list = {}
+    shoppings = {}
     for ingredient in ingredients:
         name, unit = ingredient.food.name, ingredient.food.unit
-        amount= ingredient.amount
-        if shopping_list.get(name):
-            if shopping_list[name].get(unit, -1) == -1:
-                shopping_list[name][unit] = amount
+        amount = ingredient.amount
+        if shoppings.get(name):
+            if shoppings[name].get(unit, -1) == -1:
+                shoppings[name][unit] = amount
             elif amount is not None:
-                shopping_list[name][unit] += amount
+                shoppings[name][unit] += amount
             else:
-                shopping_list[name][unit] = amount
+                shoppings[name][unit] = amount
         else:
-            shopping_list[name] = {unit:amount}
-    a = []
-    for i in shopping_list:
-        for x in shopping_list[i]:
-          a.append(f'{i} {shopping_list[i][x]} {x}')
-    print(a)
-    return shopping_list
-
-
-
-
-
+            shoppings[name] = {unit: amount}
+    shoppings_list = []
+    for food in shoppings:
+        for unit in shoppings[food]:
+            if shoppings[food][unit]:
+                shoppings_list.append(f"{food} {shoppings[food][unit]} {unit}")
+            else:
+                shoppings_list.append(f"{food} {unit}")
+    return shoppings_list

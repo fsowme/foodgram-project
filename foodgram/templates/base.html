@@ -1,11 +1,13 @@
 {% load static %}
 <!doctype html>
 <html>
-{% block head%}
+{% block head %}
 {% endblock %}
 {% csrf_token %}
 <body class="body">
+    {% block menu %}
     {% include 'include/menu.html' %}
+    {% endblock %}
     {% block content %}
     {% endblock %}
     {% include 'include/footer.html' %}
