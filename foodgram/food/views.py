@@ -1,9 +1,14 @@
-from random import randint
+import io
 
+import pdfkit
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
+from django.http import FileResponse
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context
+from django.template.loader import get_template
+from reportlab.pdfgen import canvas
 from users.models import User
 
 from .forms import RecipeForm
@@ -259,7 +264,8 @@ def follow_view(request):
     return render(request, "follow_page.html", context)
 
 
-def purchase_view(request, recipe_slug=None):
+def purchase_view(request, recipe_slug=None, download=None):
+    print(download)
     if not request.user.is_authenticated:
         if slugs := request.session.keys():
             if recipe_slug:
@@ -273,4 +279,43 @@ def purchase_view(request, recipe_slug=None):
             purchase.delete()
         recipes = Recipe.objects.filter(in_purchases__user=request.user)
     context = {"amount_purchases": recipes.count(), "recipes": recipes}
+    ingredients_list(Ingredient.objects.filter(recipe__in=recipes))
     return render(request, "purchase_page.html", context)
+
+
+
+def make_pdf():
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    p.drawString(100, 100, "Hello world.")
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
+
+
+def ingredients_list(ingredients):
+    shopping_list = {}
+    for ingredient in ingredients:
+        name, unit = ingredient.food.name, ingredient.food.unit
+        amount= ingredient.amount
+        if shopping_list.get(name):
+            if shopping_list[name].get(unit, -1) == -1:
+                shopping_list[name][unit] = amount
+            elif amount is not None:
+                shopping_list[name][unit] += amount
+            else:
+                shopping_list[name][unit] = amount
+        else:
+            shopping_list[name] = {unit:amount}
+    a = []
+    for i in shopping_list:
+        for x in shopping_list[i]:
+          a.append(f'{i} {shopping_list[i][x]} {x}')
+    print(a)
+    return shopping_list
+
+
+
+
+
