@@ -1,19 +1,13 @@
 from io import StringIO
 
-# import pdfkit
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import FileResponse, response
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context
-from django.template.loader import get_template
 
-# from reportlab.pdfgen import canvas
+from food.forms import RecipeForm
+from food.models import Bookmark, Follow, Ingredient, Recipe, Tag
 from users.models import User
-
-from .forms import RecipeForm
-from .models import Bookmark, Follow, Ingredient, Purchase, Recipe, Tag
 
 INDEX_PAGE_SIZE = 6
 FOLLOW_PAGE_SIZE = 3
@@ -125,7 +119,6 @@ def filter_by_tags(request, queryset):
     tags = Tag.objects.exclude(eng_name__in=tags)
     tags_names = list(tags.values_list("eng_name", flat=True))
     filtered_recipes = queryset.filter(tag__eng_name__in=tags_names).distinct()
-    print(tags_names)
     return {"disabled_tags": tags_names}, filtered_recipes
 
 
@@ -158,7 +151,6 @@ def user_view(request, username):
         context.update(can_subscribe(author, request.user))
         context.update(recipes_in_bookmarks(request.user, page))
         context.update(is_subscribed(author, request.user))
-    print(context)
     return render(request, "index.html", context)
 
 

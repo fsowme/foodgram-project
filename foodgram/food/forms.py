@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import widgets
 
-from .models import Food, Recipe, Tag
+from food.models import Food, Recipe, Tag
 
 
 class RecipeForm(forms.ModelForm):

@@ -1,6 +1,7 @@
-from food.models import Bookmark, Follow, Food, Purchase, Recipe
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
+
+from food.models import Bookmark, Follow, Food, Purchase, Recipe
 from users.models import User
 
 
@@ -53,9 +54,3 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         lookup_field = "recipe__slug"
         fields = ["user", "recipe"]
-
-
-class RecipeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = "__all__"

@@ -1,6 +1,5 @@
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
-from food.models import Follow, Food, Purchase, Recipe
 from rest_framework import mixins, viewsets
 from rest_framework.authentication import (
     BasicAuthentication,
@@ -8,13 +7,14 @@ from rest_framework.authentication import (
 )
 from rest_framework.response import Response
 
-from .custom_viewsets import CreateDestroyViewSet
-from .serializers import (
+from api.custom_viewsets import CreateDestroyViewSet
+from api.serializers import (
     BookmarkSerializer,
     FoodSerializer,
     PurchaseSerializer,
     SubscriptionsSerializer,
 )
+from food.models import Follow, Food, Purchase, Recipe
 
 
 class FoodsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -78,7 +78,6 @@ class PurchaseViewSet(CreateDestroyViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
-            slugs = self.request.session.keys()
             return Purchase.objects.none()
         return self.request.user.purchases.all()
 

@@ -1,7 +1,6 @@
-from django.conf.urls import url
-from django.urls import path, re_path
+from django.urls import path
 
-from . import views
+from food import views
 
 urlpatterns = [
     path("", views.main, name="index"),
