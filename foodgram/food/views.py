@@ -84,6 +84,10 @@ def check_bookmark(user, recipe):
     return {"in_bookmark": in_bookmark}
 
 
+def can_mark(user, recipes):
+    return {"can_mark": {_.id: bool(user != _.author) for _ in recipes}}
+
+
 def recipes_in_bookmarks(user, recipes):
     bookmarks = {_.id: check_bookmark(user, _)["in_bookmark"] for _ in recipes}
     return {"bookmarks": bookmarks}
@@ -133,6 +137,7 @@ def main(request):
     context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
     context.update(recipes_in_bookmarks(request.user, page))
+    context.update(can_mark(request.user, page))
     return render(request, "index.html", context)
 
 
@@ -146,6 +151,7 @@ def user_view(request, username):
     context.update(get_recipes_tags(page))
     context.update(get_name(author))
     context.update(recipes_in_purchases(request, page))
+    context.update(can_mark(request.user, page))
     context.update(amount_purchases(request))
     if request.user.is_authenticated:
         context.update(can_subscribe(author, request.user))
@@ -163,6 +169,7 @@ def bookmark_view(request):
     context.update(disabled_tags)
     context.update(get_recipes_tags(page))
     context.update(get_authors(page))
+    context.update(can_mark(request.user, page))
     context.update(get_authors_names(page))
     context.update(recipes_in_bookmarks(request.user, page))
     context.update(recipes_in_purchases(request, page))
@@ -180,6 +187,7 @@ def recipe_view(request, recipe_slug):
     context.update(amount_purchases(request))
     context.update(check_purchase(request, recipe))
     if request.user.is_authenticated:
+        context.update({"can_mark": bool(recipe.author != request.user)})
         context.update(is_subscribed(recipe.author, request.user))
         context.update(check_bookmark(request.user, recipe))
     return render(request, "recipe_page.html", context)
@@ -308,3 +316,13 @@ def ingredients_list(ingredients):
             else:
                 shoppings_list.append(f"{food} {unit}")
     return shoppings_list
+
+
+def page_not_found(request, exception):
+    return render(
+        request, "errors/404.html", {"path": request.path}, status=404
+    )
+
+
+def server_error(request):
+    return render(request, "errors/500.html", status=500)

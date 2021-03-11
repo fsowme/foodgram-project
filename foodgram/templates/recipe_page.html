@@ -15,7 +15,7 @@
         <div class="single-card__info">
             <div class="single-card__header-info">
                 <h1 class="single-card__title">{{ recipe.name }}</h1>
-                {% if user.is_authenticated %}
+                {% if user.is_authenticated and can_mark %}
                 <div class="single-card__favorite">
                 {% if in_bookmark %}
                     <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_big icon-favorite_active"></span></button>

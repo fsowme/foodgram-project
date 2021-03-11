@@ -117,6 +117,9 @@ class Follow(models.Model):
             )
         ]
 
+    def __str__(self):
+        return f"Подписка {self.user.username} на {self.author.username}"
+
 
 class Bookmark(models.Model):
     user = models.ForeignKey(
@@ -129,6 +132,12 @@ class Bookmark(models.Model):
     class Meta:
         unique_together = ["user", "recipe"]
 
+    def __str__(self):
+        return (
+            f"Закладка рецепта {self.recipe.name} "
+            f"у автора {self.user.username}"
+        )
+
 
 class Purchase(models.Model):
     user = models.ForeignKey(
@@ -140,3 +149,6 @@ class Purchase(models.Model):
 
     class Meta:
         unique_together = ["user", "recipe"]
+
+    def __str__(self):
+        return f"{self.recipe.name} как покупка у {self.user.username}"

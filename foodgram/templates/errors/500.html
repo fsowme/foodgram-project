@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% load recipe_filters %}
+{% block title %}{{ flatpage.title }}{% endblock %}
+{% block head %}
+{% include "include/head.html" with pagestyle="pages/index.css" %}
+{% endblock %}
+{% block content %}
+<main class="main container">
+    <div class="custom-center-block">
+        <h1>Ошибка 500</h1>
+        <h2>Внутренняя ошибка сервера</h2>
+            <p class="custom-text-block"><a href="{% url  'index' %}">Вернуться на главную</a></p>
+    </div>
+
+
+</main>
+<script src="{% static 'js/components/MainCards.js' %}"></script>
+<script src="{% static 'js/components/Purchases.js' %}"></script>
+<script src="{% static 'js/components/Favorites.js' %}"></script>
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'js/components/Subscribe.js' %}"></script>
+<script src="{% static 'js/components/CardList.js' %}"></script>
+
+
+{% if user.is_authenticated %}
+<script src="{% static 'indexAuth.js' %}"></script>
+{% else %}
+<script src="{% static 'indexNotAuth.js' %}"></script>
+{% endif %}
+{% endblock %}

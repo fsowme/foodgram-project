@@ -36,7 +36,7 @@
         {% if user.is_authenticated %}
             {% if request.resolver_match.url_name == "index" or request.resolver_match.url_name == "bookmark" %}
                 {% for recipe in page %}
-                    {% with purchase=purchases|get_from_dict:recipe.id %}
+                    {% with purchase=purchases|get_from_dict:recipe.id can_mark=can_mark|get_from_dict:recipe.id %}
                     {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
                     {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
                         {% include "include/recipe_card.html" %}
@@ -47,7 +47,7 @@
             {% elif request.resolver_match.url_name == "user" %}
                 {% with author=author name=author_name %}
                     {% for recipe in page %}
-                        {% with purchase=purchases|get_from_dict:recipe.id %}
+                        {% with purchase=purchases|get_from_dict:recipe.id can_mark=can_mark|get_from_dict:recipe.id %}
                         {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
                             {% include "include/recipe_card.html" %}
                         {% endwith %}
