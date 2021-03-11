@@ -19,17 +19,12 @@ def get_value_from_list(list, index):
 
 
 @register.filter
-def parse_tags(get):
-    return get.getlist("tag")
-
-
-@register.filter
-def set_tag_qs(request, tag):
-    new_req = request.GET.copy()
-    tags = new_req.getlist("tag")
-    if tag.eng_name in tags:
-        tags.remove(tag.eng_name)
+def get_tag_params(request, tag):
+    request_ = request.GET.copy()
+    tags_names = request_.getlist("disable")
+    if tag.eng_name in tags_names:
+        tags_names.remove(tag.eng_name)
     else:
-        tags.append(tag.eng_name)
-    new_req.setlist("tag", tags)
-    return new_req.urlencode()
+        tags_names.append(tag.eng_name)
+    request_.setlist("disable", tags_names)
+    return request_.urlencode()

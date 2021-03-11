@@ -17,7 +17,7 @@
             {% for tag in tags %}
             <li class="tags__item">
                 <a id="{{ tag.eng_name }}" class="tags__checkbox tags__checkbox_style_{{ tag.color }} 
-                    {% if tag.eng_name in request.GET|parse_tags %}tags__checkbox_active{% endif %}" href="{{ request.path }}?{{ request|set_tag_qs:tag}}">
+                    {% if tag.eng_name in disabled_tags %}tags__checkbox_active{% endif %}" href="{{ request.path }}?{{ request|get_tag_params:tag}}">
                 </a>
                 <span class="tags__label">{{ tag.name }}</span>
             </li>

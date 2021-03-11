@@ -121,17 +121,19 @@ def recipes_in_purchases(request, recipes):
 
 
 def filter_by_tags(request, queryset):
-    tags_names = list(Tag.objects.values_list("eng_name", flat=True))
-    tags = request.GET.getlist("tag", tags_names)
-    print(request.GET)
-    print(tags)
-    return queryset.filter(tag__eng_name__in=tags).distinct()
+    tags = request.GET.getlist("disable")
+    tags = Tag.objects.exclude(eng_name__in=tags)
+    tags_names = list(tags.values_list("eng_name", flat=True))
+    filtered_recipes = queryset.filter(tag__eng_name__in=tags_names).distinct()
+    print(tags_names)
+    return {"disabled_tags": tags_names}, filtered_recipes
 
 
 def main(request):
-    recipes = filter_by_tags(request, Recipe.objects.all())
+    disabled_tags, recipes = filter_by_tags(request, Recipe.objects.all())
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update(disabled_tags)
     context.update(get_recipes_tags(page))
     context.update(get_authors(page))
     context.update(get_authors_names(page))
@@ -143,9 +145,10 @@ def main(request):
 
 def user_view(request, username):
     author = get_object_or_404(User, username=username)
-    recipes = author.recipes.all()
+    disabled_tags, recipes = filter_by_tags(request, author.recipes.all())
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update(disabled_tags)
     context.update({"author": author})
     context.update(get_recipes_tags(page))
     context.update(get_name(author))
@@ -161,14 +164,15 @@ def user_view(request, username):
 
 @login_required
 def bookmark_view(request):
-    user = request.user
-    recipes = Recipe.objects.filter(in_bookmark__user=user)
+    recipes = Recipe.objects.filter(in_bookmark__user=request.user)
+    disabled_tags, recipes = filter_by_tags(request, recipes)
     paginator, page = make_pagination(request, recipes, BOOKMARK_PAGE_SIZE)
     context = {"paginator": paginator, "page": page, "tags": Tag.objects.all()}
+    context.update(disabled_tags)
     context.update(get_recipes_tags(page))
     context.update(get_authors(page))
     context.update(get_authors_names(page))
-    context.update(recipes_in_bookmarks(user, page))
+    context.update(recipes_in_bookmarks(request.user, page))
     context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
     return render(request, "index.html", context)
