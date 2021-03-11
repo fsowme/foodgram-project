@@ -1,6 +1,4 @@
-import io
-
-import django
+from io import StringIO
 
 # import pdfkit
 from django.contrib.auth.decorators import login_required
@@ -10,10 +8,8 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context
 from django.template.loader import get_template
-
 # from reportlab.pdfgen import canvas
 from users.models import User
-
 
 from .forms import RecipeForm
 from .models import Bookmark, Follow, Ingredient, Purchase, Recipe, Tag
@@ -285,9 +281,14 @@ def purchase_view(request, recipe_slug=None, download=None):
     if download:
         ingredients = Ingredient.objects.filter(recipe__in=recipes)
         context.update({"shopping": ingredients_list(ingredients)})
-        with open("shopping_list", "w") as file:
-            for ingredient in ingredients:
-                file.write(f"{ingredients}\n")
+        file = StringIO()
+        for ingredient in ingredients_list(ingredients):
+            print(ingredient)
+            file.write(f'{ingredient}\n')
+        response = HttpResponse(file.getvalue(),  content_type="application/default")
+        response['Content-Disposition'] = 'attachment; filename=ingrs.txt'
+        return response
+
 
     return render(request, "purchase_page.html", context)
 
