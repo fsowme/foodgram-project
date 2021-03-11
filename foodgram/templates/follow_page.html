@@ -3,7 +3,7 @@
 {% load recipe_filters %}
 {% block title %}Подписки{% endblock %}
 {% block head %}
-{% include 'include/head.html' with pagestyle='pages/myFollow.css' %}
+{% include "include/head.html" with pagestyle="pages/myFollow.css" %}
 {% endblock %}
 {% block content %}
 {% load thumbnail %}
@@ -47,7 +47,7 @@
         {% endfor %}
     </div>
     {% if page.has_other_pages %}
-    {% include 'include/paginator.html' with items=page paginator=paginator %}
+    {% include "include/paginator.html" with items=page paginator=paginator %}
     {% endif %}
 </main>
 <script src="{% static 'js/config/config.js' %}"></script>

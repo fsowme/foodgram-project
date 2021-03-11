@@ -272,33 +272,25 @@ def follow_view(request):
     return render(request, "follow_page.html", context)
 
 
-def purchase_view(request, recipe_slug=None, download=None):
+def purchase_view(request, recipe_slug=None, shopping=None):
     if not request.user.is_authenticated:
         if slugs := request.session.keys():
             if recipe_slug:
                 del request.session[recipe_slug]
         recipes = Recipe.objects.filter(slug__in=slugs)
     else:
-        if recipe_slug:
-            purchase = get_object_or_404(
-                Purchase, user=request.user, recipe__slug=recipe_slug
-            )
-            purchase.delete()
         recipes = Recipe.objects.filter(in_purchases__user=request.user)
     context = {"amount_purchases": recipes.count(), "recipes": recipes}
-    if download:
+    if shopping:
         ingredients = Ingredient.objects.filter(recipe__in=recipes)
-        context.update({"shopping": ingredients_list(ingredients)})
         file = StringIO()
         for ingredient in ingredients_list(ingredients):
-            print(ingredient)
             file.write(f"{ingredient}\n")
         response = HttpResponse(
             file.getvalue(), content_type="application/default"
         )
         response["Content-Disposition"] = "attachment; filename=ingrs.txt"
         return response
-
     return render(request, "purchase_page.html", context)
 
 

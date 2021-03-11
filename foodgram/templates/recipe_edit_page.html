@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ recipe.name }}{% endblock %}
 {% block head %}
-{% include 'include/head.html' with pagestyle='pages/form.css' %}
+{% include "include/head.html" with pagestyle="pages/form.css" %}
 {% endblock %}
 {% block content %}
 {% load thumbnail %}
@@ -98,7 +98,7 @@
                 </div>
             </div>
             <div class="form__footer">
-                <button class="button button_style_blue">Сохранить</button> {% if request.resolver_match.url_name == 'edit' %} <a style="margin-left: 2.5em"
+                <button class="button button_style_blue">Сохранить</button> {% if request.resolver_match.url_name == "edit" %} <a style="margin-left: 2.5em"
                     href="{% url 'delete' recipe_slug=form.instance.slug %}" class="form__ingredient-link">Удалить</a> {% endif %}
             </div>
         </form>

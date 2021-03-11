@@ -3,14 +3,14 @@
 {% load recipe_filters %}
 {% block title %}Главная{% endblock %}
 {% block head %}
-{% include 'include/head.html' with pagestyle='pages/index.css' %}
+{% include "include/head.html" with pagestyle="pages/index.css" %}
 {% endblock %}
 {% block content %}
 <main class="main container">
     <div class="main__header">
-        {% if request.resolver_match.url_name == 'index' %}
+        {% if request.resolver_match.url_name == "index" %}
         <h1 class="main__title">Рецепты</h1>
-        {% elif request.resolver_match.url_name == 'user' %}
+        {% elif request.resolver_match.url_name == "user" %}
         <h1 class="main__title">{{ author_name }}</h1>
         {% endif %}
         <ul class="tags">
@@ -34,33 +34,33 @@
 
     <div class="card-list">
         {% if user.is_authenticated %}
-            {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmark' %}
+            {% if request.resolver_match.url_name == "index" or request.resolver_match.url_name == "bookmark" %}
                 {% for recipe in page %}
                     {% with purchase=purchases|get_from_dict:recipe.id %}
                     {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
                     {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
-                        {% include 'include/recipe_card.html' %}
+                        {% include "include/recipe_card.html" %}
                     {% endwith %}
                     {% endwith %}
                     {% endwith %}
-                {% endfor %}\
-            {% elif request.resolver_match.url_name == 'user' %}
+                {% endfor %}
+            {% elif request.resolver_match.url_name == "user" %}
                 {% with author=author name=author_name %}
                     {% for recipe in page %}
                         {% with purchase=purchases|get_from_dict:recipe.id %}
                         {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
-                            {% include 'include/recipe_card.html' %}
+                            {% include "include/recipe_card.html" %}
                         {% endwith %}
                         {% endwith %}
                     {% endfor %}
                 {% endwith %}
             {% endif %}
         {% else %}
-            {% if request.resolver_match.url_name == 'index' %}
+            {% if request.resolver_match.url_name == "index" %}
                 {% for recipe in page %}
                     {% with author=authors|get_from_dict:recipe.id purchase=purchases|get_from_dict:recipe.id  %}
                     {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
-                        {% include 'include/recipe_card.html' %}
+                        {% include "include/recipe_card.html" %}
                     {% endwith %}
                     {% endwith %}
                 {% endfor %}
@@ -69,7 +69,7 @@
                     {% for recipe in page %}
                         {% with purchase=purchases|get_from_dict:recipe.id  %}
                         {% with recipe_tags=recipes_tags|get_from_dict:recipe.id %}
-                            {% include 'include/recipe_card.html' %}
+                            {% include "include/recipe_card.html" %}
                         {% endwith %}
                         {% endwith %}
                     {% endfor %}
@@ -83,7 +83,7 @@
 
 
     {% if page.has_other_pages %}
-    {% include 'include/paginator.html' with items=page paginator=paginator %}
+    {% include "include/paginator.html" with items=page paginator=paginator %}
     {% endif %}
 
 </main>
@@ -95,7 +95,7 @@
 <script src="{% static 'js/api/Api.js' %}"></script>
 <script src="{% static 'js/components/Subscribe.js' %}"></script>
 
-{% if request.resolver_match.url_name == 'user' %}
+{% if request.resolver_match.url_name == "user" %}
 {% if user.is_authenticated %}
 <script src="{% static 'js/components/Subscribe.js' %}"></script>
 {% endif %}
@@ -105,9 +105,9 @@
 
 
 
-{% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'bookmark' %}
+{% if request.resolver_match.url_name == "index" or request.resolver_match.url_name == "bookmark" %}
 <script src="{% static 'js/components/CardList.js' %}"></script>
-{% if request.resolver_match.url_name == 'bookmark' %}
+{% if request.resolver_match.url_name == "bookmark" %}
 <script src="{% static 'favorite.js' %}"></script>
 {% endif %}
 {% if user.is_authenticated %}

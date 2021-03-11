@@ -6,11 +6,11 @@
 {% csrf_token %}
 <body class="body">
     {% block menu %}
-    {% include 'include/menu.html' %}
+    {% include "include/menu.html" %}
     {% endblock %}
     {% block content %}
     {% endblock %}
-    {% include 'include/footer.html' %}
+    {% include "include/footer.html" %}
 </body>
 
 </html>

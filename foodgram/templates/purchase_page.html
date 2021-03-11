@@ -3,7 +3,7 @@
 {% load recipe_filters %}
 {% block title %}Главная{% endblock %}
 {% block head %}
-{% include 'include/head.html' with pagestyle='pages/shopList.css' %}
+{% include "include/head.html" with pagestyle="pages/shopList.css" %}
 {% endblock %}
 {% block content %}
 {% load thumbnail %}
@@ -22,11 +22,11 @@
                     <h3 class="recipe__title">{{ recipe.name }}</h3>
                     <p class="recipe__text"><span class="icon-time"></span> {{ recipe.cooking_time }} мин.</p>
                 </div>
-                <a href="{% url 'purchase' recipe_slug=recipe.slug %}" class="shopping-list__button link">Удалить</a>
+                <a href="{% url 'purchase_delete' recipe_slug=recipe.slug %}" class="shopping-list__button link">Удалить</a>
             </li>
             {% endfor %}
         </ul>
-        <a href="{% url 'purchase_download' download='download' %}"><button class="button button_style_blue">Скачать список</button></a>
+        <a href="{% url 'download' shopping='true' %}"><button class="button button_style_blue">Скачать список</button></a>
 
 
     </div>
