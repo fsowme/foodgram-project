@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import widgets
+from django.shortcuts import get_object_or_404
 
 from food.models import Food, Recipe, Tag
 
@@ -52,13 +53,8 @@ class RecipeForm(forms.ModelForm):
             )
         food = zip(food_names, food_units)
         cleaned_food = {}
-        keys = []
         for count, (name, unit) in enumerate(food):
-            if (
-                Food.objects.filter(name=name, unit=unit).exists()
-                and Food.objects.get(name=name, unit=unit).pk not in keys
-            ):
-                ingredient = Food.objects.get(name=name, unit=unit)
-                cleaned_food[ingredient] = food_amount[count]
+            ingredient = get_object_or_404(Food, name=name, unit=unit)
+            cleaned_food[ingredient] = food_amount[count]
         self.cleaned_data["food"] = cleaned_food
         return self.cleaned_data["food"]

@@ -55,14 +55,6 @@ class BookmarkViewSet(CreateDestroyViewSet):
         queryset = self.request.user.bookmarks.all()
         return queryset
 
-    def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response({"success": True})
-
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"success": True})
-
 
 class PurchaseViewSet(CreateDestroyViewSet):
     authentication_classes = [BasicAuthentication, SessionAuthentication]
@@ -81,10 +73,6 @@ class PurchaseViewSet(CreateDestroyViewSet):
             return Purchase.objects.none()
         return self.request.user.purchases.all()
 
-    def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response({"success": True})
-
     def destroy(self, request, *args, **kwargs):
         if not self.request.user.is_authenticated:
             slug = self.kwargs.get("recipe__slug")
@@ -94,5 +82,4 @@ class PurchaseViewSet(CreateDestroyViewSet):
                 return Response({"success": True})
             return Response({"success": False})
 
-        super().destroy(request, *args, **kwargs)
-        return Response({"success": True})
+        return super().destroy(request, *args, **kwargs)

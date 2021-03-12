@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.db.models import constraints
 
 from users.models import User
 
@@ -19,18 +20,36 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "Тэг"
+        verbose_name_plural = "Тэги"
+
 
 class Food(models.Model):
     name = models.CharField(max_length=200, verbose_name="Название продукта")
     unit = models.CharField(max_length=20, verbose_name="Единица измерения")
-    counted = models.BooleanField(blank=False, null=False, default=True)
+    counted = models.BooleanField(
+        blank=False,
+        null=False,
+        default=True,
+        verbose_name="Исчесляемая ля еденица измерения",
+    )
 
     class Meta:
         ordering = ["name"]
-        unique_together = ["name", "unit"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "unit"],
+                name="name with unit must be unique, yo",
+            )
+        ]
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "Продукт"
+        verbose_name_plural = "Продукты"
 
 
 class Recipe(models.Model):
@@ -46,7 +65,7 @@ class Recipe(models.Model):
         verbose_name="Картинка рецепта", upload_to="food/"
     )
     description = models.TextField(verbose_name="Описание рецепта")
-    tag = models.ManyToManyField(to=Tag, related_name="recipes")
+    tags = models.ManyToManyField(to=Tag, related_name="recipes")
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления в минутах"
     )
@@ -56,6 +75,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ["-pub_date"]
+        verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
 
     def __str__(self):
         return self.name
@@ -82,7 +103,14 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ["recipe"]
-        unique_together = ["food", "recipe"]
+        verbose_name = "Ингредиента"
+        verbose_name_plural = "Ингредиенты"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["food", "recipe"],
+                name="%(app_label)s_%(class)s_check_fields_unique",
+            )
+        ]
 
     def save(self, *args, **kwargs):
         if not self.food.counted:
@@ -109,13 +137,18 @@ class Follow(models.Model):
 
     class Meta:
         ordering = ["-follow_date"]
-        unique_together = ["user", "author"]
         constraints = [
             models.CheckConstraint(
                 name="%(app_label)s_%(class)s_check_self_follow",
                 check=~models.Q(user=models.F("author")),
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["user", "author"],
+                name="%(app_label)s_%(class)s_check_fields_unique",
+            ),
         ]
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
 
     def __str__(self):
         return f"Подписка {self.user.username} на {self.author.username}"
@@ -130,7 +163,14 @@ class Bookmark(models.Model):
     )
 
     class Meta:
-        unique_together = ["user", "recipe"]
+        verbose_name = "Закладка"
+        verbose_name_plural = "Закладки"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recipe"],
+                name="%(app_label)s_%(class)s_check_fields_unique",
+            ),
+        ]
 
     def __str__(self):
         return (
@@ -148,7 +188,14 @@ class Purchase(models.Model):
     )
 
     class Meta:
-        unique_together = ["user", "recipe"]
+        verbose_name = "Покупка"
+        verbose_name_plural = "Покупки"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recipe"],
+                name="%(app_label)s_%(class)s_check_unique_fields",
+            )
+        ]
 
     def __str__(self):
         return f"{self.recipe.name} как покупка у {self.user.username}"

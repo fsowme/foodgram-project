@@ -17,5 +17,5 @@ router.register("purchases", PurchaseViewSet, basename="purchase")
 
 urlpatterns = [
     path("v1/", include(router.urls)),
-    path("api-auth/", include("rest_framework.urls")),
+    path("v1/api-auth/", include("rest_framework.urls")),
 ]
