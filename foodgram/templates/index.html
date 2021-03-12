@@ -85,24 +85,19 @@
     {% endif %}
 
 </main>
+
+
+{% endblock %}
+
+{% block personal_js %}
 <script src="{% static 'js/components/MainCards.js' %}"></script>
 <script src="{% static 'js/components/Purchases.js' %}"></script>
 <script src="{% static 'js/components/Favorites.js' %}"></script>
-<script src="{% static 'js/config/config.js' %}"></script>
-<script src="{% static 'js/components/Header.js' %}"></script>
-<script src="{% static 'js/api/Api.js' %}"></script>
 <script src="{% static 'js/components/Subscribe.js' %}"></script>
-
 {% if request.resolver_match.url_name == "user" %}
-{% if user.is_authenticated %}
-<script src="{% static 'js/components/Subscribe.js' %}"></script>
-{% endif %}
 <script src="{% static 'js/components/AuthorRecipe.js' %}"></script>
 <script src="{% static 'authorRecipe.js' %}"></script>
 {% endif %}
-
-
-
 {% if request.resolver_match.url_name == "index" or request.resolver_match.url_name == "bookmark" %}
 <script src="{% static 'js/components/CardList.js' %}"></script>
 {% if request.resolver_match.url_name == "bookmark" %}
@@ -114,6 +109,4 @@
 <script src="{% static 'indexNotAuth.js' %}"></script>
 {% endif %}
 {% endif %}
-
-
 {% endblock %}
