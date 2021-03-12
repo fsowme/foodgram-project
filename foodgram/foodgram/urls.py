@@ -6,8 +6,8 @@ from django.contrib.flatpages import views
 from django.urls import include, path
 
 
-handler404 = "food.views.page_not_found"
-handler500 = "food.views.server_error"
+handler404 = "views.page_not_found"
+handler500 = "views.server_error"
 
 
 urlpatterns = [

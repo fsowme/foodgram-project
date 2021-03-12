@@ -1,5 +1,8 @@
 from django.core.paginator import Paginator
 from django.db.models import Case, CharField, F, Q, When
+from django.db.models.expressions import Exists, OuterRef
+from django.db.models.fields import BooleanField
+from django.db.models.query import QuerySet
 
 from food.models import Bookmark, Follow, Recipe, Tag
 
@@ -41,47 +44,56 @@ def get_name(user):
 
 def get_ingredients(recipe):
     ingredients_in_recipe = recipe.ingredients.values(
-        "food__name", "amount", "food__unit", "food"
+        "amount", food_name=F("food__name"), food_unit=F("food__unit")
     )
-    ingredients = []
-    for i in ingredients_in_recipe:
-        ingredients.append(
-            {
-                "food_name": i["food__name"],
-                "amount": i["amount"],
-                "food_unit": i["food__unit"],
-            }
-        )
-    return {"ingredients": ingredients}
+    return {"ingredients": ingredients_in_recipe}
 
 
 def is_editable(author, user):
-    editable = bool(user.is_authenticated and user == author)
+    editable = user.is_authenticated and user == author
     return {"can_edit": editable}
 
 
 def is_subscribed(author, user):
-    subscribed = bool(Follow.objects.filter(author=author, user=user).exists())
+    subscribed = Follow.objects.filter(author=author, user=user).exists()
     return {"subscribed": subscribed}
 
 
 def can_subscribe(author, user):
-    return {"can_subscribe": bool(user.is_authenticated and user != author)}
+    return {"can_subscribe": user.is_authenticated and user != author}
 
 
 def check_bookmark(user, recipe):
-    in_bookmark = bool(
+    in_bookmark = (
         user.is_authenticated
         and Bookmark.objects.filter(user=user, recipe=recipe).exists()
     )
     return {"in_bookmark": in_bookmark}
 
 
-def can_mark(user, recipes):
-    return {"can_mark": {_.id: bool(user != _.author) for _ in recipes}}
+def can_mark(user, recipes: QuerySet):
+    can_bookmark = dict(
+        recipes.annotate(
+            can_mark=Case(
+                When(Q(author__pk=user.pk), then=False),
+                default=True,
+                output_field=BooleanField(),
+            )
+        ).values_list("pk", "can_mark")
+    )
+    return {"can_mark": can_bookmark}
 
 
 def recipes_in_bookmarks(user, recipes):
+    # page возвращает урезанный queryset
+    # bookmarks_subquery = Bookmark.objects.filter(
+    #     recipe=OuterRef("pk"), user__pk=user.pk
+    # )
+    # in_bookmarks = dict(
+    #     Recipe.objects.annotate(
+    #         in_bookmarks=Exists(bookmarks_subquery)
+    #     ).values_list("pk", "in_bookmarks")
+    # )
     bookmarks = {_.id: check_bookmark(user, _)["in_bookmark"] for _ in recipes}
     return {"bookmarks": bookmarks}
 
@@ -97,7 +109,7 @@ def check_purchase(request, recipe):
     if request.user.is_authenticated:
         in_purchase = request.user.purchases.filter(recipe=recipe).exists()
         return {"in_purchase": in_purchase}
-    return {"in_purchase": bool(recipe.slug in request.session.keys())}
+    return {"in_purchase": recipe.slug in request.session.keys()}
 
 
 def recipes_in_purchases(request, recipes):

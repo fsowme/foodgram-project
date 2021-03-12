@@ -39,11 +39,11 @@ def main(request):
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
     context.update(get_authors_names(page.object_list))
     context.update(get_authors(page.object_list))
+    context.update(can_mark(request.user, page.object_list))
+    context.update(amount_purchases(request))
     context.update(disabled_tags)
     context.update(recipes_in_purchases(request, page))
-    context.update(amount_purchases(request))
     context.update(recipes_in_bookmarks(request.user, page))
-    context.update(can_mark(request.user, page))
 
     return render(request, "index.html", context)
 
@@ -53,11 +53,11 @@ def user_view(request, username):
     disabled_tags, recipes = filter_by_tags(request, author.recipes.all())
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update(can_mark(request.user, page.object_list))
     context.update(disabled_tags)
     context.update({"author": author})
     context.update(get_name(author))
     context.update(recipes_in_purchases(request, page))
-    context.update(can_mark(request.user, page))
     context.update(amount_purchases(request))
     if request.user.is_authenticated:
         context.update(can_subscribe(author, request.user))
@@ -73,9 +73,9 @@ def bookmark_view(request):
     paginator, page = make_pagination(request, recipes, BOOKMARK_PAGE_SIZE)
     context = {"paginator": paginator, "page": page, "tags": Tag.objects.all()}
     context.update(get_authors_names(page.object_list))
-    context.update(disabled_tags)
     context.update(get_authors(page.object_list))
-    context.update(can_mark(request.user, page))
+    context.update(can_mark(request.user, page.object_list))
+    context.update(disabled_tags)
     context.update(recipes_in_bookmarks(request.user, page))
     context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
@@ -92,7 +92,7 @@ def recipe_view(request, recipe_slug):
     context.update(amount_purchases(request))
     context.update(check_purchase(request, recipe))
     if request.user.is_authenticated:
-        context.update({"can_mark": bool(recipe.author != request.user)})
+        context.update({"can_mark": recipe.author != request.user})
         context.update(is_subscribed(recipe.author, request.user))
         context.update(check_bookmark(request.user, recipe))
     return render(request, "recipe_page.html", context)
@@ -221,37 +221,3 @@ def ingredients_list(ingredients):
             else:
                 shoppings_list.append(f"{food} {unit}")
     return shoppings_list
-
-
-def page_not_found(request, exception):
-    return render(
-        request, "errors/404.html", {"path": request.path}, status=404
-    )
-
-
-def server_error(request):
-    return render(request, "errors/500.html", status=500)
-
-
-from django.db.models import Q
-
-# User.objects.annotate(
-#     ddd=Case(
-#         When(Q(first_name='') | Q(last_name=''), then=Value(Q)),
-#         default=(Q(firstname)),
-#         output_field=CharField(),
-#     ),
-# ).values_list('username', 'ddd').order_by('-ddd')
-# Recipe.objects.annotate(ddd=Case(When(Q(author__first_name='') | Q(author__last_name=''), then=F('author__username')), default="author__first_name, author__first_name", output_field=CharField())).values_list("name", "ddd")
-# User.objects.annotate(ddd=Case(When(Q(first_name='') | Q(last_name=''), then=f"{F('username')} {F('first_name')}"), default=F("first_name"), output_field=CharField())).values_list("username", "ddd").filter(id__lte=5)
-# Recipe.objects.annotate(ddd=Case(When(Q(author__first_name='') | Q(author__last_name=''), then=F('author__username')), output_field=CharField())).values_list("name", "ddd")
-# User.objects.annotate(ddd=Case(When(Q(first_name='') | Q(last_name=''), then=F('username')), default="first_name", output_field=CharField())).values_list("username", "ddd").filter(id__lte=5)
-# Recipe.objects.
-# User.objects.annotate(
-#     discount=Case(
-#         When(account_type=User.GOLD, then=Value("5%")),
-#         When(account_type=User.PLATINUM, then=Value("10%")),
-#         default=Value("0%"),
-#         output_field=CharField(),
-#     ),
-# ).values_list("name", "discount")
