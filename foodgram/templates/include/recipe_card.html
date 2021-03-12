@@ -10,7 +10,7 @@
         <a class="card__title link" href="{% url 'recipe' recipe_slug=recipe.slug %}" target="_self">{{ recipe.name }}</a>
         <ul class="card__items">
             {% for tag in recipe_tags %}
-            <li class="card__item"><span class="badge badge_style_{{ tag.color }}">{{ tag.name }}</span></li>
+            <li class="card__item"><span class="badge badge_style_{{ tag.1 }}">{{ tag.name }}</span></li>
             {% endfor %}
         </ul>
         <div class="card__items card__items_column">

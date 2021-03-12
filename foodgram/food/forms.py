@@ -1,12 +1,11 @@
 from django import forms
 from django.forms import widgets
 from django.shortcuts import get_object_or_404
-
 from food.models import Food, Recipe, Tag
 
 
 class RecipeForm(forms.ModelForm):
-    tag = forms.ModelMultipleChoiceField(
+    tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.all(),
         widget=widgets.CheckboxSelectMultiple(),
         required=False,
@@ -20,14 +19,14 @@ class RecipeForm(forms.ModelForm):
             "name",
             "description",
             "cooking_time",
-            "tag",
+            "tags",
             "image",
         ]
         labels = {
             "name": ("Название рецепта"),
             "description": ("Описание рецепта"),
             "cooking_time": ("Время приготовления"),
-            "tag": ("Тэги"),
+            "tags": ("Тэги"),
             "image": ("Вкуная картинка"),
             "food": ("Ингредиенты"),
             "amount": ("Количество ингредиента"),
@@ -36,7 +35,7 @@ class RecipeForm(forms.ModelForm):
             "name": ("Придуймайте название рецепта"),
             "description": ("Подробно опишите процесс приголовления"),
             "cooking_time": ("Сколько времени всё это займет в минутах"),
-            "tag": ("К какой категории отностися этот рецепт"),
+            "tags": ("К какой категории отностися этот рецепт"),
             "image": ("Загрузите какое-нибудь фото"),
             "food": ("Укажите нежные продукты"),
             "amount": ("Количество продуктов"),

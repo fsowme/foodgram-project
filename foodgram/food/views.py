@@ -1,12 +1,28 @@
 from io import StringIO
 
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
 from food.forms import RecipeForm
-from food.models import Bookmark, Follow, Ingredient, Recipe, Tag
+from food.models import Ingredient, Recipe, Tag
+from food.utils import (
+    amount_purchases,
+    can_mark,
+    can_subscribe,
+    check_bookmark,
+    check_purchase,
+    filter_by_tags,
+    get_authors,
+    get_authors_names,
+    get_ingredients,
+    get_name,
+    get_recipes_tags,
+    is_editable,
+    is_subscribed,
+    make_pagination,
+    recipes_in_bookmarks,
+    recipes_in_purchases,
+)
 from users.models import User
 
 INDEX_PAGE_SIZE = 6
@@ -14,116 +30,6 @@ FOLLOW_PAGE_SIZE = 3
 BOOKMARK_PAGE_SIZE = 6
 RECIPES_FOLLOW_PAGE = 3
 BOOKMARK_PAGE_SIZE = 3
-
-
-def make_pagination(request, elements, total_on_page):
-    paginator = Paginator(elements, total_on_page)
-    page_number = request.GET.get("page", 1)
-    page = paginator.get_page(page_number)
-    return paginator, page
-
-
-def get_recipes_tags(recipes):
-    return {
-        "recipes_tags": {recipe.id: recipe.tag.all() for recipe in recipes}
-    }
-
-
-def get_authors_names(recipes):
-    authors = {}
-    for recipe in recipes:
-        authors[recipe.id] = get_name(recipe.author)["author_name"]
-    return {"authors_names": authors}
-
-
-def get_authors(recipes):
-    return {"authors": {recipe.id: recipe.author for recipe in recipes}}
-
-
-def get_name(user):
-    if user.first_name and user.last_name:
-        return {"author_name": f"{user.first_name} {user.last_name}"}
-    return {"author_name": f"{user.username}"}
-
-
-def get_ingredients(recipe):
-    ingredients_in_recipe = recipe.ingredients.values(
-        "food__name", "amount", "food__unit", "food"
-    )
-    ingredients = []
-    for i in ingredients_in_recipe:
-        ingredients.append(
-            {
-                "food_name": i["food__name"],
-                "amount": i["amount"],
-                "food_unit": i["food__unit"],
-            }
-        )
-    return {"ingredients": ingredients}
-
-
-def is_editable(author, user):
-    editable = bool(user.is_authenticated and user == author)
-    return {"can_edit": editable}
-
-
-def is_subscribed(author, user):
-    subscribed = bool(Follow.objects.filter(author=author, user=user).exists())
-    return {"subscribed": subscribed}
-
-
-def can_subscribe(author, user):
-    return {"can_subscribe": bool(user.is_authenticated and user != author)}
-
-
-def check_bookmark(user, recipe):
-    in_bookmark = bool(
-        user.is_authenticated
-        and Bookmark.objects.filter(user=user, recipe=recipe).exists()
-    )
-    return {"in_bookmark": in_bookmark}
-
-
-def can_mark(user, recipes):
-    return {"can_mark": {_.id: bool(user != _.author) for _ in recipes}}
-
-
-def recipes_in_bookmarks(user, recipes):
-    bookmarks = {_.id: check_bookmark(user, _)["in_bookmark"] for _ in recipes}
-    return {"bookmarks": bookmarks}
-
-
-def amount_purchases(request):
-    if request.user.is_authenticated:
-        return {"amount_purchases": request.user.purchases.count()}
-    slugs = request.session.keys()
-    return {"amount_purchases": Recipe.objects.filter(slug__in=slugs).count()}
-
-
-def check_purchase(request, recipe):
-    if request.user.is_authenticated:
-        in_purchase = request.user.purchases.filter(recipe=recipe).exists()
-        return {"in_purchase": in_purchase}
-    return {"in_purchase": bool(recipe.slug in request.session.keys())}
-
-
-def recipes_in_purchases(request, recipes):
-    if request.user.is_authenticated:
-        purchases = {
-            _.id: check_purchase(request, _)["in_purchase"] for _ in recipes
-        }
-        return {"purchases": purchases}
-    slugs = request.session.keys()
-    purchases = {_.id: str(_.slug) in slugs for _ in recipes}
-    return {"purchases": purchases}
-
-
-def filter_by_tags(request, queryset):
-    tags = request.GET.getlist("disable")
-    tags = Tag.objects.exclude(eng_name__in=tags)
-    tags_names = list(tags.values_list("eng_name", flat=True))
-    filtered_recipes = queryset.filter(tag__eng_name__in=tags_names).distinct()
-    return {"disabled_tags": tags_names}, filtered_recipes
 
 
 def main(request):
@@ -138,6 +44,7 @@ def main(request):
     context.update(amount_purchases(request))
     context.update(recipes_in_bookmarks(request.user, page))
     context.update(can_mark(request.user, page))
+
     return render(request, "index.html", context)
 
 
@@ -179,7 +86,7 @@ def bookmark_view(request):
 
 def recipe_view(request, recipe_slug):
     recipe = get_object_or_404(Recipe, slug=recipe_slug)
-    tags_names = recipe.tag.values("name", "eng_name", "color")
+    tags_names = recipe.tags.values("name", "eng_name", "color")
     context = {"recipe": recipe, "tags": tags_names, "author": recipe.author}
     context.update(get_name(recipe.author))
     context.update(is_editable(recipe.author, request.user))
@@ -205,7 +112,7 @@ def recipe_edit(request, recipe_slug):
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
         instance.author = request.user
-        instance.tag.set(recipe_form.cleaned_data["tag"])
+        instance.tags.set(recipe_form.cleaned_data["tag"])
         ingredients = recipe_form.cleaned_data["food"]
         Ingredient.objects.filter(recipe=instance).exclude(
             food__in=ingredients.keys()
@@ -229,7 +136,7 @@ def recipe_new(request):
         instance = recipe_form.save(commit=False)
         instance.author = request.user
         instance.save()
-        instance.tag.set(recipe_form.cleaned_data["tag"])
+        instance.tags.set(recipe_form.cleaned_data["tag"])
         ingredients = recipe_form.cleaned_data["food"]
         for food, amount in ingredients.items():
             Ingredient.objects.create(

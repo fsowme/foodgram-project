@@ -27,7 +27,7 @@
                 <p class="form__label">Теги</p>
                 <div class="form__field-group">
                     <div class="tags">
-                        {% for tag in form.tag %}
+                        {% for tag in form.tags %}
                         <div class="tags__item">
                             <input type="checkbox" name="{{ tag.data.name }}" value="{{ tag.data.value.value }}"
                                 id="{{ tag.id_for_label }}"
