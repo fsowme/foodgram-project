@@ -8,7 +8,6 @@ class RecipeForm(forms.ModelForm):
     tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.all(),
         widget=widgets.CheckboxSelectMultiple(),
-        required=False,
     )
     amount = forms.MultipleChoiceField(required=False)
     food = forms.MultipleChoiceField(required=False)

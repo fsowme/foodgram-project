@@ -1,4 +1,6 @@
 from django.core.paginator import Paginator
+from django.db.models import Case, CharField, F, Q, When
+
 from food.models import Bookmark, Follow, Recipe, Tag
 
 
@@ -10,29 +12,25 @@ def make_pagination(request, elements, total_on_page):
     return paginator, page
 
 
-def get_recipes_tags(recipes):
-    recipes_tags = {}
-    tags_on_recipes = recipes.object_list.values_list(
-        "pk", "tags__name", "tags__color"
-    )
-    for recipe_pk, tag_name, tag_color in tags_on_recipes:
-        if recipes_tags.get("recipe_pk"):
-            recipes_tags[recipe_pk].append([tag_name, tag_color])
-        else:
-            recipes_tags[recipe_pk] = [tag_name, tag_color]
-    print(recipes_tags)
-    return {"recipes_tags": recipes_tags}
-
-
 def get_authors_names(recipes):
-    authors = {}
-    for recipe in recipes:
-        authors[recipe.id] = get_name(recipe.author)["author_name"]
+    authors = dict(
+        recipes.annotate(
+            author_name=Case(
+                When(
+                    Q(author__first_name="") | Q(author__last_name=""),
+                    then=F("author__username"),
+                ),
+                default="author__first_name",
+                output_field=CharField(),
+            )
+        ).values_list("pk", "author_name")
+    )
     return {"authors_names": authors}
 
 
 def get_authors(recipes):
-    return {"authors": {recipe.id: recipe.author for recipe in recipes}}
+    authors = dict(recipes.values_list("pk", "author__username"))
+    return {"authors": authors}
 
 
 def get_name(user):

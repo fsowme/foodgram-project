@@ -1,6 +1,8 @@
 from io import StringIO
 
 from django.contrib.auth.decorators import login_required
+from django.db.models.expressions import Case, Value, When
+from django.db.models.fields import CharField
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from food.forms import RecipeForm
@@ -16,7 +18,6 @@ from food.utils import (
     get_authors_names,
     get_ingredients,
     get_name,
-    get_recipes_tags,
     is_editable,
     is_subscribed,
     make_pagination,
@@ -25,7 +26,7 @@ from food.utils import (
 )
 from users.models import User
 
-INDEX_PAGE_SIZE = 6
+INDEX_PAGE_SIZE = 100
 FOLLOW_PAGE_SIZE = 3
 BOOKMARK_PAGE_SIZE = 6
 RECIPES_FOLLOW_PAGE = 3
@@ -36,10 +37,9 @@ def main(request):
     disabled_tags, recipes = filter_by_tags(request, Recipe.objects.all())
     paginator, page = make_pagination(request, recipes, INDEX_PAGE_SIZE)
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
+    context.update(get_authors_names(page.object_list))
+    context.update(get_authors(page.object_list))
     context.update(disabled_tags)
-    context.update(get_recipes_tags(page))
-    context.update(get_authors(page))
-    context.update(get_authors_names(page))
     context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
     context.update(recipes_in_bookmarks(request.user, page))
@@ -55,7 +55,6 @@ def user_view(request, username):
     context = {"page": page, "paginator": paginator, "tags": Tag.objects.all()}
     context.update(disabled_tags)
     context.update({"author": author})
-    context.update(get_recipes_tags(page))
     context.update(get_name(author))
     context.update(recipes_in_purchases(request, page))
     context.update(can_mark(request.user, page))
@@ -73,11 +72,10 @@ def bookmark_view(request):
     disabled_tags, recipes = filter_by_tags(request, recipes)
     paginator, page = make_pagination(request, recipes, BOOKMARK_PAGE_SIZE)
     context = {"paginator": paginator, "page": page, "tags": Tag.objects.all()}
+    context.update(get_authors_names(page.object_list))
     context.update(disabled_tags)
-    context.update(get_recipes_tags(page))
-    context.update(get_authors(page))
+    context.update(get_authors(page.object_list))
     context.update(can_mark(request.user, page))
-    context.update(get_authors_names(page))
     context.update(recipes_in_bookmarks(request.user, page))
     context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
@@ -112,7 +110,7 @@ def recipe_edit(request, recipe_slug):
     if recipe_form.is_valid():
         instance = recipe_form.save(commit=False)
         instance.author = request.user
-        instance.tags.set(recipe_form.cleaned_data["tag"])
+        instance.tags.set(recipe_form.cleaned_data["tags"])
         ingredients = recipe_form.cleaned_data["food"]
         Ingredient.objects.filter(recipe=instance).exclude(
             food__in=ingredients.keys()
@@ -136,7 +134,7 @@ def recipe_new(request):
         instance = recipe_form.save(commit=False)
         instance.author = request.user
         instance.save()
-        instance.tags.set(recipe_form.cleaned_data["tag"])
+        instance.tags.set(recipe_form.cleaned_data["tags"])
         ingredients = recipe_form.cleaned_data["food"]
         for food, amount in ingredients.items():
             Ingredient.objects.create(
@@ -233,3 +231,27 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "errors/500.html", status=500)
+
+
+from django.db.models import Q
+
+# User.objects.annotate(
+#     ddd=Case(
+#         When(Q(first_name='') | Q(last_name=''), then=Value(Q)),
+#         default=(Q(firstname)),
+#         output_field=CharField(),
+#     ),
+# ).values_list('username', 'ddd').order_by('-ddd')
+# Recipe.objects.annotate(ddd=Case(When(Q(author__first_name='') | Q(author__last_name=''), then=F('author__username')), default="author__first_name, author__first_name", output_field=CharField())).values_list("name", "ddd")
+# User.objects.annotate(ddd=Case(When(Q(first_name='') | Q(last_name=''), then=f"{F('username')} {F('first_name')}"), default=F("first_name"), output_field=CharField())).values_list("username", "ddd").filter(id__lte=5)
+# Recipe.objects.annotate(ddd=Case(When(Q(author__first_name='') | Q(author__last_name=''), then=F('author__username')), output_field=CharField())).values_list("name", "ddd")
+# User.objects.annotate(ddd=Case(When(Q(first_name='') | Q(last_name=''), then=F('username')), default="first_name", output_field=CharField())).values_list("username", "ddd").filter(id__lte=5)
+# Recipe.objects.
+# User.objects.annotate(
+#     discount=Case(
+#         When(account_type=User.GOLD, then=Value("5%")),
+#         When(account_type=User.PLATINUM, then=Value("10%")),
+#         default=Value("0%"),
+#         output_field=CharField(),
+#     ),
+# ).values_list("name", "discount")

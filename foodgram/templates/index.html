@@ -38,7 +38,7 @@
                 {% for recipe in page %}
                     {% with purchase=purchases|get_from_dict:recipe.id can_mark=can_mark|get_from_dict:recipe.id %}
                     {% with bookmark=bookmarks|get_from_dict:recipe.id author=authors|get_from_dict:recipe.id %}
-                    {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+                    {% with name=authors_names|get_from_dict:recipe.id %}
                         {% include "include/recipe_card.html" %}
                     {% endwith %}
                     {% endwith %}
@@ -48,7 +48,7 @@
                 {% with author=author name=author_name %}
                     {% for recipe in page %}
                         {% with purchase=purchases|get_from_dict:recipe.id can_mark=can_mark|get_from_dict:recipe.id %}
-                        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id bookmark=bookmarks|get_from_dict:recipe.id %}
+                        {% with bookmark=bookmarks|get_from_dict:recipe.id %}
                             {% include "include/recipe_card.html" %}
                         {% endwith %}
                         {% endwith %}
@@ -59,7 +59,7 @@
             {% if request.resolver_match.url_name == "index" %}
                 {% for recipe in page %}
                     {% with author=authors|get_from_dict:recipe.id purchase=purchases|get_from_dict:recipe.id  %}
-                    {% with name=authors_names|get_from_dict:recipe.id recipe_tags=recipes_tags|get_from_dict:recipe.id %}
+                    {% with name=authors_names|get_from_dict:recipe.id %}
                         {% include "include/recipe_card.html" %}
                     {% endwith %}
                     {% endwith %}
@@ -68,9 +68,7 @@
                 {% with author=author name=author_name %}
                     {% for recipe in page %}
                         {% with purchase=purchases|get_from_dict:recipe.id  %}
-                        {% with recipe_tags=recipes_tags|get_from_dict:recipe.id %}
                             {% include "include/recipe_card.html" %}
-                        {% endwith %}
                         {% endwith %}
                     {% endfor %}
                 {% endwith %}

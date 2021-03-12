@@ -9,13 +9,13 @@
     <div class="card__body">
         <a class="card__title link" href="{% url 'recipe' recipe_slug=recipe.slug %}" target="_self">{{ recipe.name }}</a>
         <ul class="card__items">
-            {% for tag in recipe_tags %}
-            <li class="card__item"><span class="badge badge_style_{{ tag.1 }}">{{ tag.name }}</span></li>
+            {% for tag in recipe.tags.all %}
+            <li class="card__item"><span class="badge badge_style_{{ tag.color }}">{{ tag.name }}</span></li>
             {% endfor %}
         </ul>
         <div class="card__items card__items_column">
             <p class="card__text"><span class="icon-time"></span> {{ recipe.cooking_time }}</p>
-            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'user' username=author.username %}" style="color: black">{{ name }}</a></p>
+            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'user' username=author %}" style="color: black">{{ name }}</a></p>
         </div>
     </div>
     <div class="card__footer">
