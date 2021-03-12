@@ -30,8 +30,6 @@
             name="subscribe" {% if subscribed %}>Отписаться от автора{% else %}data-out>Подписаться на автора{% endif %}</button></p>
     </div>
     {% endif %}
-    
-
     <div class="card-list">
         {% if user.is_authenticated %}
             {% if request.resolver_match.url_name == "index" or request.resolver_match.url_name == "bookmark" %}
@@ -74,21 +72,12 @@
                 {% endwith %}
             {% endif %}
         {% endif %}
-
-
-
     </div>
-
-
     {% if page.has_other_pages %}
     {% include "include/paginator.html" with items=page paginator=paginator %}
     {% endif %}
-
 </main>
-
-
 {% endblock %}
-
 {% block personal_js %}
 <script src="{% static 'js/components/MainCards.js' %}"></script>
 <script src="{% static 'js/components/Purchases.js' %}"></script>

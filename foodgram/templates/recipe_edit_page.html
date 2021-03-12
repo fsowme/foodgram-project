@@ -6,9 +6,6 @@
 {% endblock %}
 {% block content %}
 {% load thumbnail %}
-{% load recipe_filters %}
-
-
 <main class="main container">
     <div class="main__header">
         <h1 class="main__title">Редактирование рецепта</h1>
@@ -35,7 +32,6 @@
                             <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag.data.label }}</label>
                         </div>
                         {% endfor %}
-                        <!-- {{ form.tag}} -->
                     </div>
                     <span class="form__error">{{ form.tag.errors }}</span>
                 </div>
@@ -51,7 +47,6 @@
                         <input type="number" id="cantidad" class="form__input" min="0">
                         <label for="cantidad" class="form__label" id="cantidadVal">шт.</label>
                     </div>
-
                     <div class="form__field-group-ingredientes-container">
                         {% for ingredient in ingredients %}
                         <div class="form__field-item-ingredient" id="ing_{{forloop.counter0}}">
@@ -70,7 +65,6 @@
                     <span class="form__error">{{ form.ingredient.errors }}</span>
                 </div>
             </div>
-
             <div class="form__group">
                 <label for="id_{{ form.cooking_time.name }}" class="form__label">{{ form.cooking_time.label }}</label>
                 <div class="form__field-group form__field-group_time">
@@ -103,12 +97,8 @@
             </div>
         </form>
     </div>
-
-
 </main>
-
 {% endblock %}
-
 {% block personal_js %}
 <script src="{% static 'js/utils/debouncing.js' %}"></script>
 <script src="{% static 'formRecipe.js' %}"></script>

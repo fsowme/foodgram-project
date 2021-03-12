@@ -24,7 +24,6 @@
                     class="nav__item {% if request.resolver_match.url_name == 'purchase' %}nav__item_active{% else %}nav__item_disabled{% endif %}">
                     <a href="{% url 'purchase' %}" class="nav__link link">Список покупок</a> <span class="badge badge_style_blue nav__badge" id="counter">{{ amount_purchases }}</span>
                 </li>
-
             </ul>
             <ul class="nav__items list">
                 {% if user.is_authenticated %}
