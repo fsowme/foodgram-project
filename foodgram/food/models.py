@@ -15,12 +15,12 @@ class Tag(models.Model):
         max_length=100, unique=True, verbose_name="Цвет тэга"
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Тэг"
         verbose_name_plural = "Тэги"
+
+    def __str__(self):
+        return self.name
 
 
 class Food(models.Model):
@@ -108,16 +108,16 @@ class Ingredient(models.Model):
             )
         ]
 
-    def save(self, *args, **kwargs):
-        if not self.food.counted:
-            self.amount = None
-        super(Ingredient, self).save(*args, **kwargs)
-
     def __str__(self):
         return (
             f"Продукт {self.food.name}, "
             f"как ингредиент блюда {self.recipe.name}"
         )
+
+    def save(self, *args, **kwargs):
+        if not self.food.counted:
+            self.amount = None
+        super(Ingredient, self).save(*args, **kwargs)
 
 
 class Follow(models.Model):
