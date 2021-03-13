@@ -35,14 +35,6 @@ class SubscribeViewSet(CreateDestroyViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response({"success": True})
-
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"success": True})
-
 
 class BookmarkViewSet(CreateDestroyViewSet):
     serializer_class = BookmarkSerializer

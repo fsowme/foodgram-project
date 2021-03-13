@@ -1,10 +1,9 @@
 from io import StringIO
 
 from django.contrib.auth.decorators import login_required
-from django.db.models.expressions import Case, Value, When
-from django.db.models.fields import CharField
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+
 from food.forms import RecipeForm
 from food.models import Ingredient, Recipe, Tag
 from food.utils import (
@@ -18,6 +17,7 @@ from food.utils import (
     get_authors_names,
     get_ingredients,
     get_name,
+    ingredients_list,
     is_editable,
     is_subscribed,
     make_pagination,
@@ -26,7 +26,7 @@ from food.utils import (
 )
 from users.models import User
 
-INDEX_PAGE_SIZE = 100
+INDEX_PAGE_SIZE = 6
 FOLLOW_PAGE_SIZE = 3
 BOOKMARK_PAGE_SIZE = 6
 RECIPES_FOLLOW_PAGE = 3
@@ -40,10 +40,10 @@ def main(request):
     context.update(get_authors_names(page.object_list))
     context.update(get_authors(page.object_list))
     context.update(can_mark(request.user, page.object_list))
+    context.update(recipes_in_bookmarks(request.user, page.object_list))
+    context.update(recipes_in_purchases(request, page.object_list))
     context.update(amount_purchases(request))
     context.update(disabled_tags)
-    context.update(recipes_in_purchases(request, page))
-    context.update(recipes_in_bookmarks(request.user, page))
 
     return render(request, "index.html", context)
 
@@ -57,12 +57,12 @@ def user_view(request, username):
     context.update(disabled_tags)
     context.update({"author": author})
     context.update(get_name(author))
-    context.update(recipes_in_purchases(request, page))
     context.update(amount_purchases(request))
     if request.user.is_authenticated:
         context.update(can_subscribe(author, request.user))
-        context.update(recipes_in_bookmarks(request.user, page))
+        context.update(recipes_in_bookmarks(request.user, page.object_list))
         context.update(is_subscribed(author, request.user))
+    context.update(recipes_in_purchases(request, page.object_list))
     return render(request, "index.html", context)
 
 
@@ -76,8 +76,8 @@ def bookmark_view(request):
     context.update(get_authors(page.object_list))
     context.update(can_mark(request.user, page.object_list))
     context.update(disabled_tags)
-    context.update(recipes_in_bookmarks(request.user, page))
-    context.update(recipes_in_purchases(request, page))
+    context.update(recipes_in_bookmarks(request.user, page.object_list))
+    context.update(recipes_in_purchases(request, page.object_list))
     context.update(amount_purchases(request))
     return render(request, "index.html", context)
 
@@ -104,22 +104,13 @@ def recipe_edit(request, recipe_slug):
     if request.user != recipe.author:
         return redirect("recipe", recipe_slug=recipe_slug)
     recipe_form = RecipeForm(
-        request.POST or None, files=request.FILES or None, instance=recipe
+        request.POST or None,
+        files=request.FILES or None,
+        instance=recipe,
+        initial={"author": request.user},
     )
-
     if recipe_form.is_valid():
-        instance = recipe_form.save(commit=False)
-        instance.author = request.user
-        instance.tags.set(recipe_form.cleaned_data["tags"])
-        ingredients = recipe_form.cleaned_data["food"]
-        Ingredient.objects.filter(recipe=instance).exclude(
-            food__in=ingredients.keys()
-        ).delete()
-        for food, amount in ingredients.items():
-            Ingredient.objects.update_or_create(
-                recipe=recipe, food=food, defaults={"amount": amount}
-            )
-        instance.save()
+        recipe_form.save()
         return redirect("recipe", recipe_slug=recipe_slug)
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(amount_purchases(request))
@@ -129,17 +120,13 @@ def recipe_edit(request, recipe_slug):
 
 @login_required
 def recipe_new(request):
-    recipe_form = RecipeForm(request.POST or None, files=request.FILES or None)
+    recipe_form = RecipeForm(
+        request.POST or None,
+        files=request.FILES or None,
+        initial={"author": request.user},
+    )
     if recipe_form.is_valid():
-        instance = recipe_form.save(commit=False)
-        instance.author = request.user
-        instance.save()
-        instance.tags.set(recipe_form.cleaned_data["tags"])
-        ingredients = recipe_form.cleaned_data["food"]
-        for food, amount in ingredients.items():
-            Ingredient.objects.create(
-                recipe=instance, food=food, amount=amount
-            )
+        recipe_form.save()
         return redirect("index")
     context = {"form": recipe_form, "tags": Tag.objects.all()}
     context.update(amount_purchases(request))
@@ -197,27 +184,3 @@ def purchase_view(request, recipe_slug=None, shopping=None):
         response["Content-Disposition"] = "attachment; filename=ingrs.txt"
         return response
     return render(request, "purchase_page.html", context)
-
-
-def ingredients_list(ingredients):
-    shoppings = {}
-    for ingredient in ingredients:
-        name, unit = ingredient.food.name, ingredient.food.unit
-        amount = ingredient.amount
-        if shoppings.get(name):
-            if shoppings[name].get(unit, -1) == -1:
-                shoppings[name][unit] = amount
-            elif amount is not None:
-                shoppings[name][unit] += amount
-            else:
-                shoppings[name][unit] = amount
-        else:
-            shoppings[name] = {unit: amount}
-    shoppings_list = []
-    for food in shoppings:
-        for unit in shoppings[food]:
-            if shoppings[food][unit]:
-                shoppings_list.append(f"{food} {shoppings[food][unit]} {unit}")
-            else:
-                shoppings_list.append(f"{food} {unit}")
-    return shoppings_list

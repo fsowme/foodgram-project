@@ -1,7 +1,8 @@
 from django import forms
 from django.forms import widgets
 from django.shortcuts import get_object_or_404
-from food.models import Food, Recipe, Tag
+
+from food.models import Food, Ingredient, Recipe, Tag
 
 
 class RecipeForm(forms.ModelForm):
@@ -56,3 +57,18 @@ class RecipeForm(forms.ModelForm):
             cleaned_food[ingredient] = food_amount[count]
         self.cleaned_data["food"] = cleaned_food
         return self.cleaned_data["food"]
+
+    def save(self, commit=True):
+        super().save(commit=False)
+        self.instance.author = self.initial["author"]
+        self.instance.save()
+        self.instance.tags.set(self.cleaned_data["tags"])
+        ingredients = self.cleaned_data["food"]
+        Ingredient.objects.filter(recipe=self.instance).exclude(
+            food__in=ingredients.keys()
+        ).delete()
+        for food, amount in ingredients.items():
+            Ingredient.objects.update_or_create(
+                recipe=self.instance, food=food, defaults={"amount": amount}
+            )
+        return self.instance

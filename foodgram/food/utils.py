@@ -4,7 +4,7 @@ from django.db.models.expressions import Exists, OuterRef
 from django.db.models.fields import BooleanField
 from django.db.models.query import QuerySet
 
-from food.models import Bookmark, Follow, Recipe, Tag
+from food.models import Bookmark, Follow, Purchase, Recipe, Tag
 
 
 def make_pagination(request, elements, total_on_page):
@@ -85,17 +85,15 @@ def can_mark(user, recipes: QuerySet):
 
 
 def recipes_in_bookmarks(user, recipes):
-    # page возвращает урезанный queryset
-    # bookmarks_subquery = Bookmark.objects.filter(
-    #     recipe=OuterRef("pk"), user__pk=user.pk
-    # )
-    # in_bookmarks = dict(
-    #     Recipe.objects.annotate(
-    #         in_bookmarks=Exists(bookmarks_subquery)
-    #     ).values_list("pk", "in_bookmarks")
-    # )
-    bookmarks = {_.id: check_bookmark(user, _)["in_bookmark"] for _ in recipes}
-    return {"bookmarks": bookmarks}
+    bookmarks_subquery = Bookmark.objects.filter(
+        recipe=OuterRef("pk"), user__pk=user.pk
+    )
+    in_bookmarks = dict(
+        recipes.annotate(in_bookmarks=Exists(bookmarks_subquery)).values_list(
+            "pk", "in_bookmarks"
+        )
+    )
+    return {"bookmarks": in_bookmarks}
 
 
 def amount_purchases(request):
@@ -112,14 +110,27 @@ def check_purchase(request, recipe):
     return {"in_purchase": recipe.slug in request.session.keys()}
 
 
-def recipes_in_purchases(request, recipes):
+def recipes_in_purchases(request, recipes: QuerySet):
     if request.user.is_authenticated:
-        purchases = {
-            _.id: check_purchase(request, _)["in_purchase"] for _ in recipes
-        }
-        return {"purchases": purchases}
+        purchase_subquery = Purchase.objects.filter(
+            recipe=OuterRef("pk"), user__pk=request.user.pk
+        )
+        in_purchase = dict(
+            recipes.annotate(
+                in_purchase=Exists(purchase_subquery)
+            ).values_list("pk", "in_purchase")
+        )
+        return {"purchases": in_purchase}
     slugs = request.session.keys()
-    purchases = {_.id: str(_.slug) in slugs for _ in recipes}
+    purchases = dict(
+        recipes.annotate(
+            in_purchase=Case(
+                When(slug__in=slugs, then=True),
+                default=False,
+                output_field=BooleanField(),
+            )
+        ).values_list("pk", "in_purchase")
+    )
     return {"purchases": purchases}
 
 
@@ -131,3 +142,27 @@ def filter_by_tags(request, queryset):
         tags__eng_name__in=tags_names
     ).distinct()
     return {"disabled_tags": tags_names}, filtered_recipes
+
+
+def ingredients_list(ingredients):
+    shoppings = {}
+    for ingredient in ingredients:
+        name, unit = ingredient.food.name, ingredient.food.unit
+        amount = ingredient.amount
+        if shoppings.get(name):
+            if shoppings[name].get(unit, -1) == -1:
+                shoppings[name][unit] = amount
+            elif amount is not None:
+                shoppings[name][unit] += amount
+            else:
+                shoppings[name][unit] = amount
+        else:
+            shoppings[name] = {unit: amount}
+    shoppings_list = []
+    for food in shoppings:
+        for unit in shoppings[food]:
+            if shoppings[food][unit]:
+                shoppings_list.append(f"{food} {shoppings[food][unit]} {unit}")
+            else:
+                shoppings_list.append(f"{food} {unit}")
+    return shoppings_list
