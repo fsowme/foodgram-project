@@ -2,7 +2,6 @@ from django.core.paginator import Paginator
 from django.db.models import Case, CharField, F, Q, When
 from django.db.models.expressions import Exists, OuterRef
 from django.db.models.fields import BooleanField
-from django.db.models.query import QuerySet
 
 from food.models import Bookmark, Follow, Purchase, Recipe, Tag
 
@@ -71,7 +70,7 @@ def check_bookmark(user, recipe):
     return {"in_bookmark": in_bookmark}
 
 
-def can_mark(user, recipes: QuerySet):
+def can_mark(user, recipes):
     can_bookmark = dict(
         recipes.annotate(
             can_mark=Case(
@@ -110,7 +109,7 @@ def check_purchase(request, recipe):
     return {"in_purchase": recipe.slug in request.session.keys()}
 
 
-def recipes_in_purchases(request, recipes: QuerySet):
+def recipes_in_purchases(request, recipes):
     if request.user.is_authenticated:
         purchase_subquery = Purchase.objects.filter(
             recipe=OuterRef("pk"), user__pk=request.user.pk
