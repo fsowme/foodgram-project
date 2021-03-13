@@ -1,8 +1,6 @@
 import uuid
 
 from django.db import models
-from django.db.models import constraints
-
 from users.models import User
 
 
@@ -36,6 +34,8 @@ class Food(models.Model):
     )
 
     class Meta:
+        verbose_name = "Продукт"
+        verbose_name_plural = "Продукты"
         ordering = ["name"]
         constraints = [
             models.UniqueConstraint(
@@ -46,10 +46,6 @@ class Food(models.Model):
 
     def __str__(self):
         return self.name
-
-    class Meta:
-        verbose_name = "Продукт"
-        verbose_name_plural = "Продукты"
 
 
 class Recipe(models.Model):
