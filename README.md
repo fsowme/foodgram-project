@@ -1,5 +1,3 @@
-# foodgram-project
-foodgram-project
 fsow.cf
 
 [![foodgram workflow](https://github.com/fsowme/foodgram-project/actions/workflows/foodgram_workflow.yaml/badge.svg?event=push)](https://github.com/fsowme/foodgram-project/actions/workflows/foodgram_workflow.yaml)
