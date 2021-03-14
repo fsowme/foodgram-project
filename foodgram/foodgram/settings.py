@@ -11,7 +11,7 @@ SECRET_KEY = "appcjc8eygvw=sk60a^=p^%9k05gn$t3w#pyh+46ue$)tewx0x"
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "localhost"]
 
 INSTALLED_APPS = [
     "food",
@@ -105,12 +105,10 @@ REST_FRAMEWORK = {
 }
 
 STATIC_URL = "/static/"
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 MEDIA_URL = "/media/"
-# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_ID = 1
