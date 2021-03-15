@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import widgets
 from django.shortcuts import get_object_or_404
 
@@ -53,6 +54,8 @@ class RecipeForm(forms.ModelForm):
         food = zip(food_names, food_units)
         cleaned_food = {}
         for count, (name, unit) in enumerate(food):
+            if int(food_amount[count]) < 0:
+                raise ValidationError("Количество не может быть меньше 0")
             ingredient = get_object_or_404(Food, name=name, unit=unit)
             cleaned_food[ingredient] = food_amount[count]
         self.cleaned_data["food"] = cleaned_food

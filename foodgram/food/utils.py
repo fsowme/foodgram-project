@@ -106,7 +106,7 @@ def check_purchase(request, recipe):
     if request.user.is_authenticated:
         in_purchase = request.user.purchases.filter(recipe=recipe).exists()
         return {"in_purchase": in_purchase}
-    return {"in_purchase": recipe.slug in request.session.keys()}
+    return {"in_purchase": str(recipe.slug) in request.session.keys()}
 
 
 def recipes_in_purchases(request, recipes):

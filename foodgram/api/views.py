@@ -64,14 +64,3 @@ class PurchaseViewSet(CreateDestroyViewSet):
         if not self.request.user.is_authenticated:
             return Purchase.objects.none()
         return self.request.user.purchases.all()
-
-    def destroy(self, request, *args, **kwargs):
-        if not self.request.user.is_authenticated:
-            slug = self.kwargs.get("recipe__slug")
-            get_object_or_404(Recipe, slug=slug)
-            if self.request.session.get(slug):
-                del self.request.session[slug]
-                return Response({"success": True})
-            return Response({"success": False})
-
-        return super().destroy(request, *args, **kwargs)

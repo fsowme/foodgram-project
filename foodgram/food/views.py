@@ -166,10 +166,10 @@ def follow_view(request):
 
 def purchase_view(request, recipe_slug=None, shopping=None):
     if not request.user.is_authenticated:
-        if slugs := request.session.keys():
-            if recipe_slug:
-                del request.session[recipe_slug]
-        recipes = Recipe.objects.filter(slug__in=slugs)
+        if request.session.keys() and recipe_slug:
+            del request.session[recipe_slug]
+            return redirect("purchase")
+        recipes = Recipe.objects.filter(slug__in=request.session.keys())
     else:
         recipes = Recipe.objects.filter(in_purchases__user=request.user)
     context = {"amount_purchases": recipes.count(), "recipes": recipes}

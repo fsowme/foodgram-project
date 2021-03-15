@@ -18,3 +18,10 @@ def get_tag_params(request, tag):
         tags_names.append(tag.eng_name)
     request_.setlist("disable", tags_names)
     return request_.urlencode()
+
+
+@register.filter
+def get_page(request, page_number):
+    request_ = request.GET.copy()
+    request_["page"] = page_number
+    return request_.urlencode()
