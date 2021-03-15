@@ -3,7 +3,6 @@ from io import StringIO
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
 from food.forms import RecipeForm
 from food.models import Ingredient, Recipe, Tag
 from food.utils import (
@@ -44,7 +43,6 @@ def main(request):
     context.update(recipes_in_purchases(request, page.object_list))
     context.update(amount_purchases(request))
     context.update(disabled_tags)
-
     return render(request, "index.html", context)
 
 
@@ -164,11 +162,8 @@ def follow_view(request):
     return render(request, "follow_page.html", context)
 
 
-def purchase_view(request, recipe_slug=None, shopping=None):
+def purchase_view(request, shopping=None):
     if not request.user.is_authenticated:
-        if request.session.keys() and recipe_slug:
-            del request.session[recipe_slug]
-            return redirect("purchase")
         recipes = Recipe.objects.filter(slug__in=request.session.keys())
     else:
         recipes = Recipe.objects.filter(in_purchases__user=request.user)

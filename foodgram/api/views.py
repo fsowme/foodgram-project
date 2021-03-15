@@ -1,10 +1,3 @@
-from django.http.response import Http404
-from rest_framework import mixins, viewsets
-from rest_framework.authentication import (
-    BasicAuthentication,
-    SessionAuthentication,
-)
-
 from api.custom_viewsets import CreateDestroyViewSet
 from api.serializers import (
     BookmarkSerializer,
@@ -12,7 +5,15 @@ from api.serializers import (
     PurchaseSerializer,
     SubscriptionsSerializer,
 )
-from food.models import Follow, Food, Purchase
+from django.http.response import Http404
+from django.shortcuts import get_object_or_404
+from food.models import Follow, Food, Purchase, Recipe
+from rest_framework import mixins, viewsets
+from rest_framework.authentication import (
+    BasicAuthentication,
+    SessionAuthentication,
+)
+from rest_framework.response import Response
 
 
 class FoodsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -62,3 +63,13 @@ class PurchaseViewSet(CreateDestroyViewSet):
         if not self.request.user.is_authenticated:
             return Purchase.objects.none()
         return self.request.user.purchases.all()
+
+    def destroy(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            slug = self.kwargs.get("recipe__slug")
+            get_object_or_404(Recipe, slug=slug)
+            if self.request.session.get(slug):
+                del self.request.session[slug]
+                return Response({"success": True})
+            return Response({"success": False})
+        return super().destroy(request, *args, **kwargs)

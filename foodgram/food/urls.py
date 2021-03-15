@@ -1,5 +1,4 @@
 from django.urls import path
-
 from food import views
 
 urlpatterns = [
@@ -9,11 +8,6 @@ urlpatterns = [
     path("follow/", views.follow_view, name="follow"),
     path("purchase/", views.purchase_view, name="purchase"),
     path("download/<str:shopping>/", views.purchase_view, name="download"),
-    path(
-        "purchase/<slug:recipe_slug>/",
-        views.purchase_view,
-        name="purchase_delete",
-    ),
     path("author/<str:username>/", views.user_view, name="user"),
     path("<slug:recipe_slug>/edit/", views.recipe_edit, name="edit"),
     path("<slug:recipe_slug>/delete/", views.recipe_delete, name="delete"),
