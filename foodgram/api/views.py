@@ -1,11 +1,9 @@
 from django.http.response import Http404
-from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.authentication import (
     BasicAuthentication,
     SessionAuthentication,
 )
-from rest_framework.response import Response
 
 from api.custom_viewsets import CreateDestroyViewSet
 from api.serializers import (
@@ -14,7 +12,7 @@ from api.serializers import (
     PurchaseSerializer,
     SubscriptionsSerializer,
 )
-from food.models import Follow, Food, Purchase, Recipe
+from food.models import Follow, Food, Purchase
 
 
 class FoodsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
