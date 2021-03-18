@@ -7,8 +7,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "appcjc8eygvw=sk60a^=p^%9k05gn$t3w#pyh+46ue$)tewx0x"
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
