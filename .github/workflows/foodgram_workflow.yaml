@@ -68,7 +68,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          envs: POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DB_ENGINE,DB_HOST,DB_PORT
+          envs: POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DB_ENGINE,DB_HOST,DB_PORT,SECRET_KEY
           script: |
             chmod +x ~/install_docker.sh && sudo ~/install_docker.sh
             echo "POSTGRES_USER=$POSTGRES_USER" > ~/.env && \
@@ -76,7 +76,7 @@ jobs:
             echo "POSTGRES_DB=$POSTGRES_DB" >> ~/.env && \
             echo "DB_ENGINE=$DB_ENGINE" >> ~/.env && \
             echo "DB_HOST=$DB_HOST" >> ~/.env && \
-            echo "DB_PORT=$DB_PORT" >> ~/.env \
+            echo "DB_PORT=$DB_PORT" >> ~/.env && \
             echo "SECRET_KEY=$SECRET_KEY" >> ~/.env
             sudo docker-compose pull
             sudo docker-compose up -d
