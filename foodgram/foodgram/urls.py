@@ -14,6 +14,14 @@ handler500 = server_error  # noqa
 urlpatterns = [
     path("admin/", admin.site.urls),
 ]
+
+urlpatterns += [
+    path("api/", include("api.urls")),
+    path("about/", include("django.contrib.flatpages.urls")),
+    path("auth/", include("users.urls")),
+    path("auth/", include("django.contrib.auth.urls")),
+]
+
 urlpatterns += [
     path(
         "about-author/",
@@ -28,14 +36,10 @@ urlpatterns += [
         name="about-spec",
     ),
 ]
+
 urlpatterns += [
-    path("api/", include("api.urls")),
-    path("about/", include("django.contrib.flatpages.urls")),
-    path("auth/", include("users.urls")),
-    path("auth/", include("django.contrib.auth.urls")),
     path("", include("food.urls")),
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(
