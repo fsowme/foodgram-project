@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 docker=`dpkg -l | grep docker-ce`
 if [ -z "$docker" ]
 then
