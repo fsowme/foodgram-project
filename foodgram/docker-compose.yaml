@@ -28,7 +28,7 @@ services:
       - ./.env
 
   nginx:
-    image: nginx:1.19.8-alpine
+    image: nginx:1.21.1
     volumes:
       - static:/usr/share/nginx/html/static:ro
       - media:/usr/share/nginx/html/media:rw
